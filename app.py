@@ -910,5 +910,7 @@ formatted_html = html_code.format(
     top_category=top_category if selected_category == "All" or top_category == "N/A" else f"the selected {selected_category} category ({top_category})",
     top_title=top_title
 )
-
+st.text("--- Raw HTML Content Below ---")
+st.text(formatted_html)
+st.text("--- End Raw HTML Content ---")
 st.markdown(formatted_html, unsafe_allow_html=True)
