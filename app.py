@@ -472,7 +472,7 @@ st.sidebar.header("Filters")
 all_categories = sorted(df['category'].unique())
 # Set a default value that exists in the data, or 'All'
 default_category = "IT" if "IT" in all_categories else all_categories[0] if all_categories else "All"
-default_category_index = all_categories.index(default_category) + 1 if default_category != "All" else 0 # +1 because of 'All' at the start
+default_category_index = all_categories.index(default_category) + 1 if default_category != "All" and default_category in all_categories else 0 # +1 because of 'All' at the start
 selected_category = st.sidebar.selectbox("Select Job Category", options=["All"] + all_categories, index=default_category_index)
 
 
@@ -508,12 +508,13 @@ if filtered_df.empty:
         {"label": "Top Job Category", "value": top_category, "color": "gradient-red-orange"},
     ]
     kpi_cols = st.columns(len(kpi_data))
-    for i, kpi in enumerate(kpi_data):
-        with kpi_cols[i]:
-            st.markdown(
-                f"<div class='kpi-item {kpi['color']}'><p class='kpi-label'>{kpi['label']}</p><p class='kpi-value'>{kpi['value']}</p></div>",
-                unsafe_allow_html=True,
-            )
+    for i, kpi in enumerate(kpi_cols): # Iterate through columns directly
+         # Create a container within each column for the KPI item HTML
+         kpi.markdown(
+            f"<div class='kpi-item {kpi_data[i]['color']}'><p class='kpi-label'>{kpi_data[i]['label']}</p><p class='kpi-value'>{kpi_data[i]['value']}</p></div>",
+            unsafe_allow_html=True,
+         )
+
     st.markdown(
         f"<div class='top-job-title-container'><p class='top-job-title-label'>Top Job Title</p><p class='top-job-title-value'>{top_title}</p></div>",
         unsafe_allow_html=True,
@@ -539,12 +540,12 @@ else: # Proceed with displaying KPIs and plots if data is not empty
 
     kpi_cols = st.columns(len(kpi_data))
 
-    for i, kpi in enumerate(kpi_data):
-        with kpi_cols[i]:
-            st.markdown(
-                f"<div class='kpi-item {kpi['color']}'><p class='kpi-label'>{kpi['label']}</p><p class='kpi-value'>{kpi['value']}</p></div>",
-                unsafe_allow_html=True,
-            )
+    for i, kpi in enumerate(kpi_cols): # Iterate through columns directly
+        # Create a container within each column for the KPI item HTML
+        kpi.markdown(
+            f"<div class='kpi-item {kpi_data[i]['color']}'><p class='kpi-label'>{kpi_data[i]['label']}</p><p class='kpi-value'>{kpi_data[i]['value']}</p></div>",
+            unsafe_allow_html=True,
+        )
 
     # --- Top Job Title ---
     st.markdown(
@@ -662,7 +663,7 @@ else: # Proceed with displaying KPIs and plots if data is not empty
     def extract_skills(description, keywords_lower):
         if pd.isna(description): # Handle potential NaN values
             return []
-        description_lower = description.lower()
+        description_lower = str(description).lower() # Ensure it's a string
         found_skills = [skill for skill, keyword in zip(skill_keywords, keywords_lower) if keyword in description_lower]
         return found_skills
 
@@ -716,13 +717,14 @@ else: # Proceed with displaying KPIs and plots if data is not empty
             def categorize_job_type(job_type_str):
                 if pd.isna(job_type_str):
                     return "Other/Unspecified"
-                job_type_lower = job_type_str.lower()
+                job_type_lower = str(job_type_str).lower() # Ensure it's a string before lowering
                 if 'full-time' in job_type_lower or 'full time' in job_type_lower:
                     return 'Full-time'
                 elif 'part-time' in job_type_lower or 'part time' in job_type_lower:
                     return 'Part-time'
                 else:
-                    return 'Other/Unspecified' # Categorize anything else
+                    # Catch any other non-matching string values here
+                    return 'Other/Unspecified'
 
             filtered_df['job_type_category'] = filtered_df['job_type'].apply(categorize_job_type)
 
@@ -744,8 +746,8 @@ else: # Proceed with displaying KPIs and plots if data is not empty
                     hoverinfo='label+percent+value',
                     textinfo='percent', # Only show percentage on the slice
                     marker=dict(line=dict(color='#1f1f1f', width=2)),
-                    # Display labels and values outside the pie chart
-                    textposition='outside',
+                    # Use 'auto' for text position initially, Plotly often does well
+                    textposition='auto',
                     insidetextorientation='auto',
                     pull=[0.05] * len(job_type_counts) # Slightly pull slices for emphasis
                 )
@@ -766,22 +768,27 @@ else: # Proceed with displaying KPIs and plots if data is not empty
                 with col1:
                     st.plotly_chart(fig_job_type_pie, use_container_width=True)
 
-                # Display the observations in the second column
+                # Display the observations in the second column with improved styling
                 with col2:
                     st.markdown("### Observations on Job Type")
-                    st.write("Based on the current filters:")
+                    # Using HTML/CSS for the observations list to match summary style
+                    observations_html = "<div class='summary-point' style='border-left: none; box-shadow: none; background-color: #2d3748;'>" # Use a similar style but adjust
+                    observations_html += "<p>Based on the current filters:</p><ul>"
                     for job_type, count in job_type_counts.items():
                         percentage = (count / job_type_counts.sum()) * 100 if job_type_counts.sum() > 0 else 0
-                        st.markdown(f"- <span class='highlight'>{job_type}:</span> {count:,} postings ({percentage:.2f}%)", unsafe_allow_html=True)
-
-                    st.markdown("""
+                        observations_html += f"<li><span class='highlight'>{job_type}:</span> {count:,} postings ({percentage:.2f}%)</li>"
+                    observations_html += "</ul>"
+                    observations_html += """
                     <p>Key takeaways from this distribution:</p>
                     <ul>
                         <li>The job market under the current filters is predominantly <span class="highlight">Full-time</span>.</li>
                         <li><span class="highlight">Part-time</span> and <span class="highlight">Other/Unspecified</span> roles make up a smaller portion.</li>
                         <li>This indicates a strong demand or preference for full-time employment in the analyzed segment.</li>
                     </ul>
-                    """, unsafe_allow_html=True)
+                    </div>
+                    """
+                    st.markdown(observations_html, unsafe_allow_html=True)
+
             else:
                  st.info("No job type data available for the selected filters.")
         else:
