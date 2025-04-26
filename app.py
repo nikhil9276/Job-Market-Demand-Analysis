@@ -3,8 +3,9 @@ import pandas as pd
 import plotly.express as px
 from collections import Counter
 import logging
-import io
+from io import StringIO
 import os
+import requests
 import base64
 
 # --- Setup Logging ---
@@ -265,17 +266,28 @@ h1 {
 st.markdown(custom_css, unsafe_allow_html=True)
 
 # --- Data Loading ---
+
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv('Indeed_cleaned.csv')
-        logging.info("Successfully loaded 'Indeed_cleaned.csv'")
-        return df
-    except FileNotFoundError:
-        error_message = "Error: 'Indeed_cleaned.csv' not found.  Make sure it's in the same directory as app.py."
-        st.error(error_message)
-        logging.error(error_message)
-        st.stop()
+        # Use the direct download link
+        drive_url = "https://drive.google.com/uc?export=download&id=17jcNGGMozYXj-MJtYhqhpJqVATeOQGQ7"
+        
+        # Send a GET request to the Google Drive URL
+        response = requests.get(drive_url)
+        
+        if response.status_code == 200:
+            # Use StringIO to convert the response content into a file-like object for pandas to read
+            csv_data = StringIO(response.text)
+            df = pd.read_csv(csv_data)
+            logging.info("Successfully loaded the CSV file from Google Drive")
+            return df
+        else:
+            error_message = f"Failed to download the file from Google Drive, status code: {response.status_code}"
+            st.error(error_message)
+            logging.error(error_message)
+            st.stop()
+
     except Exception as e:
         error_message = f"An error occurred while loading the CSV file: {e}"
         st.error(error_message)
