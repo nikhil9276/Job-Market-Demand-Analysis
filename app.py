@@ -15,6 +15,12 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
+# --- Add Font Awesome for icons (Separate markdown block) ---
+# This should be done early to ensure icons load correctly
+st.markdown("""
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+""", unsafe_allow_html=True)
+
 # Custom CSS for enhanced appearance (Dark Theme)
 custom_css = """
 <style>
@@ -394,6 +400,7 @@ select:focus {
 
 st.markdown(custom_css, unsafe_allow_html=True)
 
+
 # --- Data Loading ---
 @st.cache_data
 def load_data():
@@ -464,8 +471,10 @@ else:
 st.sidebar.header("Filters")
 all_categories = sorted(df['category'].unique())
 # Set a default value that exists in the data, or 'All'
-default_category_index = all_categories.index("IT") if "IT" in all_categories else 0
-selected_category = st.sidebar.selectbox("Select Job Category", options=["All"] + all_categories, index=default_category_index + 1 if "IT" in all_categories else 0) # Adjust index for 'All'
+default_category = "IT" if "IT" in all_categories else all_categories[0] if all_categories else "All"
+default_category_index = all_categories.index(default_category) + 1 if default_category != "All" else 0 # +1 because of 'All' at the start
+selected_category = st.sidebar.selectbox("Select Job Category", options=["All"] + all_categories, index=default_category_index)
+
 
 # --- Location Filters ---
 st.sidebar.header("Location Filters")
@@ -487,12 +496,12 @@ filtered_df = filter_data(df, selected_category, selected_state)
 if filtered_df.empty:
     st.warning("No data available for the selected filters.")
     logging.info("Filtered dataframe is empty.")
-    # Still show KPIs with default values
+    # Still show KPIs with default values or N/A
     total_postings = 0
     unique_categories = 0
     top_category = "N/A"
     top_title = "N/A"
-    # Proceed to display KPIs and a message instead of plots
+    # Display KPIs with default values
     kpi_data = [
         {"label": "Total Job Postings", "value": f"{total_postings:,}", "color": "gradient-blue-purple"},
         {"label": "Unique Categories", "value": unique_categories, "color": "gradient-purple-pink"},
@@ -517,8 +526,10 @@ else: # Proceed with displaying KPIs and plots if data is not empty
 
     total_postings = len(filtered_df)
     unique_categories = filtered_df['category'].nunique()
-    top_category = filtered_df['category'].value_counts().index[0]
-    top_title = filtered_df['job_title'].value_counts().index[0]
+    # Ensure value_counts doesn't return empty if all filtered data is from one category/title
+    top_category = filtered_df['category'].value_counts().index[0] if not filtered_df['category'].empty else "N/A"
+    top_title = filtered_df['job_title'].value_counts().index[0] if not filtered_df['job_title'].empty else "N/A"
+
 
     kpi_data = [
         {"label": "Total Job Postings", "value": f"{total_postings:,}", "color": "gradient-blue-purple"},
@@ -625,8 +636,6 @@ else: # Proceed with displaying KPIs and plots if data is not empty
     st.subheader("Skills Demand Analysis")
 
     # Define a more comprehensive list of skills
-    # Expanding the skill list based on common tech/job requirements
-    # Adding some non-tech skills as well
     skill_keywords = [
         "Python", "JavaScript", "Java", "C++", "C#", "Ruby", "Go", "Swift", "Kotlin",
         "SQL", "NoSQL", "PostgreSQL", "MySQL", "MongoDB", "Redis",
@@ -762,7 +771,7 @@ else: # Proceed with displaying KPIs and plots if data is not empty
                     st.markdown("### Observations on Job Type")
                     st.write("Based on the current filters:")
                     for job_type, count in job_type_counts.items():
-                        percentage = (count / job_type_counts.sum()) * 100
+                        percentage = (count / job_type_counts.sum()) * 100 if job_type_counts.sum() > 0 else 0
                         st.markdown(f"- <span class='highlight'>{job_type}:</span> {count:,} postings ({percentage:.2f}%)", unsafe_allow_html=True)
 
                     st.markdown("""
@@ -785,9 +794,8 @@ else: # Proceed with displaying KPIs and plots if data is not empty
 st.subheader("Job Market Insights Summary")
 
 # Update the summary HTML to use the same styling classes and structure
-# Also added the Font Awesome icon library for the briefcase icon
+# Font Awesome link is now outside this block
 html_code = """
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <div class="summary-container">
     <h2><i class="fas fa-briefcase"></i> Job Market Insights Summary</h2>
     <div class="summary-point">
@@ -806,27 +814,32 @@ html_code = """
 
 # Add company summary only if company_counts is available and not empty
 if 'company_counts' in locals() and not company_counts.empty:
-    top_companies_list = "</li><li>".join([f"<span class='highlight'>{company}</span>" for company in company_counts.index])
-    html_code += f"""
-    <div class="summary-point">
-        <h3>4. Leading Employers</h3>
-        <p>Based on the number of listings, key hiring companies include:</p>
-        <ul>
-            <li>{top_companies_list}</li>
-        </ul>
-        <p>These organizations are significant players in the current job market landscape.</p>
-    </div>
-    """
+    # Ensure we handle potential empty index gracefully
+    if not company_counts.index.empty:
+        top_companies_list = "</li><li>".join([f"<span class='highlight'>{company}</span>" for company in company_counts.index])
+        html_code += f"""
+        <div class="summary-point">
+            <h3>4. Leading Employers</h3>
+            <p>Based on the number of listings, key hiring companies include:</p>
+            <ul>
+                <li>{top_companies_list}</li>
+            </ul>
+            <p>These organizations are significant players in the current job market landscape.</p>
+        </div>
+        """
 
 # Add skills summary only if top_skills is available and not empty
 if 'top_skills' in locals() and top_skills:
-     top_skills_list = ", ".join([f"<span class='highlight'>{skill[0]}</span>" for skill in top_skills[:5]]) # List top 5 skills
-     html_code += f"""
-     <div class="summary-point">
-         <h3>5. Critical Skill Sets</h3>
-         <p>Beyond specific roles, high-demand skills currently include {top_skills_list} and others, emphasizing the importance of both technical and transferable abilities.</p>
-     </div>
-     """
+     # List top 5 skills if available
+     num_skills_to_list = min(5, len(top_skills))
+     if num_skills_to_list > 0:
+        top_skills_list = ", ".join([f"<span class='highlight'>{skill[0]}</span>" for skill in top_skills[:num_skills_to_list]])
+        html_code += f"""
+        <div class="summary-point">
+            <h3>5. Critical Skill Sets</h3>
+            <p>Beyond specific roles, high-demand skills currently include {top_skills_list} and others, emphasizing the importance of both technical and transferable abilities.</p>
+        </div>
+        """
 
 # Add job type summary only if job_type_counts is available and not empty
 if 'job_type_counts' in locals() and not job_type_counts.empty:
@@ -847,10 +860,11 @@ html_code += """
 """
 
 # Format the HTML code with current KPI values
+# Ensure variables used in format are defined even if filtered_df is empty
 formatted_html = html_code.format(
     total_postings=total_postings,
     unique_categories=unique_categories,
-    top_category=top_category if selected_category == "All" else f"the selected {selected_category} category", # Be more specific if a category is selected
+    top_category=top_category if selected_category == "All" or top_category == "N/A" else f"the selected {selected_category} category ({top_category})", # Be more specific if a category is selected and top_category is meaningful
     top_title=top_title
 )
 
