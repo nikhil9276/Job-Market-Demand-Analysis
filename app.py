@@ -478,57 +478,57 @@ st.plotly_chart(fig_company_bar)
 #         "<div class='plot-container'><p style='color:#ffaaaa;'>No skills found in the job descriptions.</p></div>",
 # #         unsafe_allow_html=True)
 
-# # --- Job Type Analysis ---
-# st.subheader("Job Type Analysis") # Moved this line up
-# if 'job_type' in filtered_df.columns:
-#     # Create a new column 'job_type_category'
-#     filtered_df['job_type_category'] = filtered_df['job_type'].apply(lambda x: 'Full-time' if 'Full-time' in x else 'Part-time')
+# --- Job Type Analysis ---
+st.subheader("Job Type Analysis") # Moved this line up
+if 'job_type' in filtered_df.columns:
+    # Create a new column 'job_type_category'
+    filtered_df['job_type_category'] = filtered_df['job_type'].apply(lambda x: 'Full-time' if 'Full-time' in x else 'Part-time')
 
-#     # Calculate the frequency of each job type category
-#     job_type_counts = filtered_df['job_type_category'].value_counts()
+    # Calculate the frequency of each job type category
+    job_type_counts = filtered_df['job_type_category'].value_counts()
 
-#     # Create a pie chart to visualize the distribution
-#     fig_job_type_pie = px.pie(
-#         job_type_counts,
-#         names=job_type_counts.index,
-#         values=job_type_counts.values,
-#         title=f"Job Type Distribution in {selected_state if selected_state != 'All' else 'All States'}", # shortened title
-#         labels={'names': 'Job Type Category', 'values': 'Number of Postings'},
-#         color_discrete_sequence=px.colors.sequential.Rainbow, # Changed color sequence
-#     )
-#     fig_job_type_pie.update_traces(
-#         hoverinfo='label+percent+value',
-#         textinfo='label+percent+value',
-#         marker=dict(line=dict(color='#1f1f1f', width=2)),
-#         # Display labels and values outside the pie chart
-#         textposition='outside',
-#         insidetextorientation='auto'
-#     )
-#     fig_job_type_pie.update_layout(
-#         paper_bgcolor='rgba(0,0,0,0)',
-#         plot_bgcolor='rgba(0,0,0,0)',
-#         font_color='#ffffff',
-#         showlegend=False,
-#         title_font_size=22,
-#         font=dict(family='Inter', size=12),
-#     )
-#     # Create two columns for the pie chart and the text
-#     col1, col2 = st.columns([1, 1])  # Adjust the ratio as needed
+    # Create a pie chart to visualize the distribution
+    fig_job_type_pie = px.pie(
+        job_type_counts,
+        names=job_type_counts.index,
+        values=job_type_counts.values,
+        title=f"Job Type Distribution in {selected_state if selected_state != 'All' else 'All States'}", # shortened title
+        labels={'names': 'Job Type Category', 'values': 'Number of Postings'},
+        color_discrete_sequence=px.colors.sequential.Rainbow, # Changed color sequence
+    )
+    fig_job_type_pie.update_traces(
+        hoverinfo='label+percent+value',
+        textinfo='label+percent+value',
+        marker=dict(line=dict(color='#1f1f1f', width=2)),
+        # Display labels and values outside the pie chart
+        textposition='outside',
+        insidetextorientation='auto'
+    )
+    fig_job_type_pie.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_color='#ffffff',
+        showlegend=False,
+        title_font_size=22,
+        font=dict(family='Inter', size=12),
+    )
+    # Create two columns for the pie chart and the text
+    col1, col2 = st.columns([1, 1])  # Adjust the ratio as needed
 
-#     # Display the pie chart in the first column
-#     with col1:
-#         st.plotly_chart(fig_job_type_pie)
+    # Display the pie chart in the first column
+    with col1:
+        st.plotly_chart(fig_job_type_pie)
 
-#     # Display the observations in the second column
-#     with col2:
-#         st.write("Observations:")
-#         st.write("-   Full-time jobs are dominant, accounting for approximately 96.44% of the total job postings.")
-#         st.write("-   Part-time jobs represent a smaller portion, accounting for about 3.56% of the total postings.")
-#         st.write("-   The high percentage of Full-time positions suggests a strong preference or demand for full-time employment in this market.")
+    # Display the observations in the second column
+    with col2:
+        st.write("Observations:")
+        st.write("-   Full-time jobs are dominant, accounting for approximately 96.44% of the total job postings.")
+        st.write("-   Part-time jobs represent a smaller portion, accounting for about 3.56% of the total postings.")
+        st.write("-   The high percentage of Full-time positions suggests a strong preference or demand for full-time employment in this market.")
 
 
-# else:
-#     st.markdown("<div class='plot-container'><p style='color:#ffaaaa;'>'job_type' column not found.</p></div>", unsafe_allow_html=True)
+else:
+    st.markdown("<div class='plot-container'><p style='color:#ffaaaa;'>'job_type' column not found.</p></div>", unsafe_allow_html=True)
 
 # --- Display the raw data (optional) ---
 # if st.checkbox("Show Raw Data"): # Removed the checkbox
