@@ -266,7 +266,6 @@ h1 {
 st.markdown(custom_css, unsafe_allow_html=True)
 
 # --- Data Loading ---
-
 @st.cache_data
 def load_data():
     try:
@@ -295,6 +294,7 @@ def load_data():
         st.stop()
 
 df = load_data()
+
 
 # --- Title of the App ---
 st.title("Job Market Demand Analysis")
