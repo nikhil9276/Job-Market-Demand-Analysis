@@ -430,53 +430,53 @@ fig_company_bar.update_layout(
 st.plotly_chart(fig_company_bar)
 
 
-# --- Skills Demand Analysis ---
-st.subheader("Skills Demand Analysis") # Changed the title here - Removed duplicate
+# # --- Skills Demand Analysis ---
+# st.subheader("Skills Demand Analysis") # Changed the title here - Removed duplicate
 
-def extract_skills(description):
-    skills = ["Python", "JavaScript", "Java", "C++", "SQL", "AWS", "Azure", "Docker", "Kubernetes", "React",
-              "Angular", "Node.js", "Data Analysis", "Machine Learning", "Communication", "Management"]
-    found_skills = [skill for skill in skills if skill.lower() in description.lower()]
-    return found_skills
+# def extract_skills(description):
+#     skills = ["Python", "JavaScript", "Java", "C++", "SQL", "AWS", "Azure", "Docker", "Kubernetes", "React",
+#               "Angular", "Node.js", "Data Analysis", "Machine Learning", "Communication", "Management"]
+#     found_skills = [skill for skill in skills if skill.lower() in description.lower()]
+#     return found_skills
 
-try:
-    df['skills'] = df['job_description'].apply(extract_skills) # Use the original DataFrame here
-except KeyError as e:
-        st.error(f"Error: The 'job_description' column is missing. Please check your data.  KeyError: {e}")
-        logging.error(f"KeyError: {e}.  The 'job_description' column is missing.")
-        st.stop()
-except Exception as e:
-        st.error(f"An unexpected error occurred while extracting skills: {e}")
-        logging.exception(f"An unexpected error occurred: {e}")
-        st.stop()
+# try:
+#     df['skills'] = df['job_description'].apply(extract_skills) # Use the original DataFrame here
+# except KeyError as e:
+#         st.error(f"Error: The 'job_description' column is missing. Please check your data.  KeyError: {e}")
+#         logging.error(f"KeyError: {e}.  The 'job_description' column is missing.")
+#         st.stop()
+# except Exception as e:
+#         st.error(f"An unexpected error occurred while extracting skills: {e}")
+#         logging.exception(f"An unexpected error occurred: {e}")
+#         st.stop()
 
-all_skills = [skill for sublist in df['skills'] for skill in sublist] # Use the original DataFrame here
-skill_counts = Counter(all_skills)
-top_skills = skill_counts.most_common(10)
+# all_skills = [skill for sublist in df['skills'] for skill in sublist] # Use the original DataFrame here
+# skill_counts = Counter(all_skills)
+# top_skills = skill_counts.most_common(10)
 
-if top_skills:
-    skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
-    fig_skills_bar = px.bar(
-        skills_df,
-        x='Count',
-        y='Skill',
-        orientation='h',
-        labels={'x': 'Number of Job Postings', 'y': 'Skill'}, # Changed x-axis label to 'Number of Job Postings'
-        title=f"Top 10 Skills in Demand", # Removed the state filter
-        color_discrete_sequence=px.colors.sequential.Plasma
-    )
-    fig_skills_bar.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#ffffff',
-        title_font_size=22,
-        font=dict(family='Inter', size=12),
-    )
-    st.plotly_chart(fig_skills_bar)
-else:
-    st.markdown(
-        "<div class='plot-container'><p style='color:#ffaaaa;'>No skills found in the job descriptions.</p></div>",
-        unsafe_allow_html=True)
+# if top_skills:
+#     skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
+#     fig_skills_bar = px.bar(
+#         skills_df,
+#         x='Count',
+#         y='Skill',
+#         orientation='h',
+#         labels={'x': 'Number of Job Postings', 'y': 'Skill'}, # Changed x-axis label to 'Number of Job Postings'
+#         title=f"Top 10 Skills in Demand", # Removed the state filter
+#         color_discrete_sequence=px.colors.sequential.Plasma
+#     )
+#     fig_skills_bar.update_layout(
+#         paper_bgcolor='rgba(0,0,0,0)',
+#         plot_bgcolor='rgba(0,0,0,0)',
+#         font_color='#ffffff',
+#         title_font_size=22,
+#         font=dict(family='Inter', size=12),
+#     )
+#     st.plotly_chart(fig_skills_bar)
+# else:
+#     st.markdown(
+#         "<div class='plot-container'><p style='color:#ffaaaa;'>No skills found in the job descriptions.</p></div>",
+#         unsafe_allow_html=True)
 
 # --- Job Type Analysis ---
 st.subheader("Job Type Analysis") # Moved this line up
