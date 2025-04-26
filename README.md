@@ -28,9 +28,8 @@ This project provides an interactive dashboard for analyzing job market data. By
     * A pie chart depicting the distribution of job postings by employment type (e.g., Full-time, Part-time, Contract). This provides insights into the prevalence of different employment structures within the market.
     * Accompanying observations highlight the dominant job type and its implications.
 
-## Data Sources (Implicit from Screenshots)
-
-Based on the visual information, the data likely originates from a comprehensive collection of job postings aggregated from various online platforms, company websites, or potentially a specific job board API. The data includes details such as job title, category, company name, required skills, job type, and potentially location (though location filtering was present but not the primary focus of the summarized screenshots).
+## Deploy-Link
+ view project--> [here](https://job-market-demand-analysis.streamlit.app/)).
 
 ## Technologies Used (Likely)
 
