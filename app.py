@@ -293,7 +293,7 @@ def get_base64_of_file(path):
     with open(path, "rb") as f:
         encoded_image = base64.b64encode(f.read()).decode()
     return f"data:image/png;base64,{encoded_image}"
-
+curr_dir = os.path.dirname(os.path.abspath(__file__))
 logo_path = os.path.join(curr_dir, "indeed_logo.png")   # Make sure this is the correct relative path to your logo
 logo_base64 = get_base64_of_file(logo_path)
 st.markdown(
