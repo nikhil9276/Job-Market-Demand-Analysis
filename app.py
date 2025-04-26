@@ -10,14 +10,13 @@ import base64
 
 # --- Setup Logging ---
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 # --- Add Font Awesome for icons (Separate markdown block) ---
-# This should be done early to ensure icons load correctly for the summary section
-# Adding this in a separate block to avoid potential conflicts with main HTML rendering
+# Adding this in a separate block to ensure it loads correctly for HTML elements
 st.markdown("""
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 """, unsafe_allow_html=True)
@@ -224,6 +223,7 @@ h1 {
     border-radius: 15px;
     color: #ffffff;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    margin-top: 0;
 }
 .top-job-title-container {
     background-color: #2d3748;
@@ -279,10 +279,10 @@ def load_data():
     try:
         # Use the direct download link
         drive_url = "https://drive.google.com/uc?export=download&id=17jcNGGMozYXj-MJtYhqhpJqVATeOQGQ7"
-
+        
         # Send a GET request to the Google Drive URL
         response = requests.get(drive_url)
-
+        
         if response.status_code == 200:
             # Use StringIO to convert the response content into a file-like object for pandas to read
             csv_data = StringIO(response.text)
@@ -611,4 +611,10 @@ html_code = """
 </style>
 
 <div class="summary-container">
-    <h2><i class="fas fa-briefcase"></i> Job Market Insights Summary
+    <h2><i class="fas fa-briefcase"></i> Job Market Insights Summary</h2>
+    <div class="summary-point">
+        <h3>1. Overall Job Market Overview</h3>
+        <p>The dataset comprises <span class="highlight">29,575 job postings</span> spanning <span class="highlight">63 distinct job categories</span>, indicating a diverse job market.</p>
+    </div>
+    <div class="summary-point">
+        <h3>2. Dominant Sector
