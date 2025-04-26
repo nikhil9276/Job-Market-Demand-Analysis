@@ -250,7 +250,7 @@ select:focus {
     padding: 1.5rem; /* Adjusted padding */
     background-color: #2d3748; /* Darker background */
     color: #ffffff;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    box_shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     animation: fadeIn 1.5s ease;
 }
 
@@ -261,7 +261,7 @@ select:focus {
     border-radius: 15px;
     border: 2px solid #5a6375;
     text-align: center;
-    margin-bottom: 3rem; /* More space below */
+    margin_bottom: 3rem; /* More space below */
     animation: fadeIn 1s ease; /* Removed pulse from here */
     transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
@@ -275,84 +275,84 @@ select:focus {
 .top-job-title-label {
     font-size: 1.3rem !important;
     color: #cbd5e0 !important;
-    margin-bottom: 0.6rem;
-    font-weight: 600;
-    text-align: center;
+    margin_bottom: 0.6rem;
+    font_weight: 600;
+    text_align: center;
 }
 .top-job-title-value {
     font-size: 2.8rem !important;
-    font-weight: 800 !important;
+    font_weight: 800 !important;
     color: #ffffff !important;
-    letter-spacing: -0.06em;
-    text-align: center;
-    word-wrap: break-word;
-    text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
+    letter_spacing: -0.06em;
+    text_align: center;
+    word_wrap: break_word;
+    text_shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
     color: #00bcd4 !important; /* Highlight the value */
 }
 
 /* Summary Section Styling */
 .summary-container {
-    font-family: 'Inter', sans-serif; /* Use Inter font */
-    background-color: #1f1f1f; /* Match app background */
-    border-radius: 15px;
+    font_family: 'Inter', sans-serif; /* Use Inter font */
+    background_color: #1f1f1f; /* Match app background */
+    border_radius: 15px;
     padding: 30px; /* Increased padding */
-    margin-top: 3rem; /* Added space above */
-    margin-bottom: 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+    margin_top: 3rem; /* Added space above */
+    margin_bottom: 20px;
+    box_shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Stronger shadow */
     width: 100%; /* Use full width */
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
+    max_width: 1200px;
+    margin_left: auto;
+    margin_right: auto;
     color: #e0e0e0;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex_direction: column;
+    align_items: center;
     animation: fadeIn 1.5s ease;
     border: 1px solid #2d3748; /* Subtle border */
 }
 .summary-container h2 {
     color: #00bcd4; /* Cyan color */
-    text-align: center;
-    font-size: 2.8em; /* Increased font size */
-    margin-bottom: 30px; /* More space below */
-    font-weight: 800; /* Extra bold */
+    text_align: center;
+    font_size: 2.8em; /* Increased font size */
+    margin_bottom: 30px; /* More space below */
+    font_weight: 800; /* Extra bold */
     display: flex;
-    justify-content: center;
-    align-items: center;
-    border-bottom: 3px solid #00bcd4; /* Matching border */
-    padding-bottom: 10px;
+    justify_content: center;
+    align_items: center;
+    border_bottom: 3px solid #00bcd4; /* Matching border */
+    padding_bottom: 10px;
     width: 80%; /* Adjust width of the heading border */
 }
 .summary-container h2 i {
-    margin-right: 15px;
-    font-size: 1em; /* Relative size */
+    margin_right: 15px;
+    font_size: 1em; /* Relative size */
     color: #00bcd4;
 }
 .summary-point {
-    background-color: #2d3748; /* Darker blue-gray */
-    border-radius: 10px; /* More rounded */
+    background_color: #2d3748; /* Darker blue-gray */
+    border_radius: 10px; /* More rounded */
     padding: 20px; /* Adjusted padding */
     margin: 15px 0; /* Adjusted margin */
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-    font-size: 1.15em; /* Slightly larger font size */
+    box_shadow: 0 3px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    font_size: 1.15em; /* Slightly larger font size */
     color: #c0c0c0; /* Lighter gray text */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     width: 100%;
-    max-width: 1100px; /* Adjust max-width for summary points */
-    border-left: 5px solid #00bcd4; /* Highlight border on the left */
+    max_width: 1100px; /* Adjust max_width for summary points */
+    border_left: 5px solid #00bcd4; /* Highlight border on the left */
 }
 .summary-point:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-    border-left-color: #a78bfa; /* Change highlight color on hover */
+    box_shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    border_left_color: #a78bfa; /* Change highlight color on hover */
 }
 .highlight {
     color: #a78bfa; /* Lighter purple highlight */
-    font-weight: 700; /* Bold highlight */
+    font_weight: 700; /* Bold highlight */
 }
 .summary-point ul {
-    padding-left: 25px; /* More padding */
-    list-style-type: disc;
+    padding_left: 25px; /* More padding */
+    list_style_type: disc;
     color: #e0e0e0; /* Match summary point text color */
 }
 .summary-point li {
@@ -360,38 +360,38 @@ select:focus {
 }
 .summary-point h3 {
     color: #a78bfa; /* Lighter purple */
-    font-size: 1.5em; /* Larger heading size */
-    margin-bottom: 12px;
-    font-weight: 700; /* Bold */
-    border-bottom: none; /* Remove border below h3 in summary */
-    padding-bottom: 0;
-    margin-top: 0;
+    font_size: 1.5em; /* Larger heading size */
+    margin_bottom: 12px;
+    font_weight: 700; /* Bold */
+    border_bottom: none; /* Remove border below h3 in summary */
+    padding_bottom: 0;
+    margin_top: 0;
 }
 
 /* Responsiveness */
-@media (max-width: 768px) {
+@media (max_width: 768px) {
     .stApp {
         padding: 1.5rem;
     }
     h1 {
-        font-size: 3rem; /* Smaller title on mobile */
+        font_size: 3rem; /* Smaller title on mobile */
     }
     .kpi-container {
-        flex-direction: column; /* Stack KPIs on mobile */
-        align-items: center; /* Center stacked KPIs */
+        flex_direction: column; /* Stack KPIs on mobile */
+        align_items: center; /* Center stacked KPIs */
     }
     .kpi-item {
-        min-width: 100%;
-        margin-bottom: 1.5rem;
+        min_width: 100%;
+        margin_bottom: 1.5rem;
     }
     .sidebar {
-        margin-top: 0;
+        margin_top: 0;
     }
     .summary-container h2 {
-        font-size: 2em; /* Smaller summary title on mobile */
+        font_size: 2em; /* Smaller summary title on mobile */
     }
     .summary-point {
-        font-size: 1em; /* Smaller summary text on mobile */
+        font_size: 1em; /* Smaller summary text on mobile */
         padding: 15px;
     }
 }
@@ -488,6 +488,23 @@ def filter_data(df, selected_category, selected_state):
         filtered_df = filtered_df[filtered_df['category'] == selected_category]
     if selected_state != "All":
         filtered_df = filtered_df[filtered_df['state'] == selected_state]
+
+    # Ensure relevant columns are string type and handle NaNs before plotting
+    columns_to_process = ['category', 'job_title', 'company_name']
+    for col in columns_to_process:
+        if col in filtered_df.columns:
+            # Convert to string, handling potential non-string NaNs first
+            filtered_df[col] = filtered_df[col].astype(str).fillna('Unknown')
+
+    # Process 'job_description' for skills, handle NaNs during extraction
+    if 'job_description' in filtered_df.columns:
+         filtered_df['job_description'] = filtered_df['job_description'].astype(str).fillna('') # Fill job_description NaNs with empty string for skill extraction
+
+    # Process 'job_type', handle NaNs during categorization
+    if 'job_type' in filtered_df.columns:
+         filtered_df['job_type'] = filtered_df['job_type'].astype(str).fillna('') # Fill job_type NaNs with empty string for categorization
+
+
     return filtered_df
 
 filtered_df = filter_data(df, selected_category, selected_state)
@@ -508,9 +525,9 @@ if filtered_df.empty:
         {"label": "Top Job Category", "value": top_category, "color": "gradient-red-orange"},
     ]
     kpi_cols = st.columns(len(kpi_data))
-    for i, kpi in enumerate(kpi_cols): # Iterate through columns directly
+    for i, kpi_col in enumerate(kpi_cols): # Iterate through columns directly
          # Create a container within each column for the KPI item HTML
-         kpi.markdown(
+         kpi_col.markdown(
             f"<div class='kpi-item {kpi_data[i]['color']}'><p class='kpi-label'>{kpi_data[i]['label']}</p><p class='kpi-value'>{kpi_data[i]['value']}</p></div>",
             unsafe_allow_html=True,
          )
@@ -527,22 +544,18 @@ else: # Proceed with displaying KPIs and plots if data is not empty
 
     total_postings = len(filtered_df)
     unique_categories = filtered_df['category'].nunique()
-    # Ensure value_counts doesn't return empty if all filtered data is from one category/title
+    # Ensure value_counts index is not empty before accessing [0]
     top_category = filtered_df['category'].value_counts().index[0] if not filtered_df['category'].empty else "N/A"
     top_title = filtered_df['job_title'].value_counts().index[0] if not filtered_df['job_title'].empty else "N/A"
-
 
     kpi_data = [
         {"label": "Total Job Postings", "value": f"{total_postings:,}", "color": "gradient-blue-purple"},
         {"label": "Unique Categories", "value": unique_categories, "color": "gradient-purple-pink"},
         {"label": "Top Job Category", "value": top_category.upper() if top_category == "IT" else top_category, "color": "gradient-red-orange"},
     ]
-
     kpi_cols = st.columns(len(kpi_data))
-
-    for i, kpi in enumerate(kpi_cols): # Iterate through columns directly
-        # Create a container within each column for the KPI item HTML
-        kpi.markdown(
+    for i, kpi_col in enumerate(kpi_cols): # Iterate through columns directly
+        kpi_col.markdown(
             f"<div class='kpi-item {kpi_data[i]['color']}'><p class='kpi-label'>{kpi_data[i]['label']}</p><p class='kpi-value'>{kpi_data[i]['value']}</p></div>",
             unsafe_allow_html=True,
         )
@@ -555,12 +568,14 @@ else: # Proceed with displaying KPIs and plots if data is not empty
 
     # --- Job Postings by Category ---
     st.subheader(f"Job Postings by Category in {selected_state if selected_state != 'All' else 'All States'}")
+    # Use the processed 'category' column
     category_counts = filtered_df['category'].value_counts().head(15)
     if not category_counts.empty:
         fig_category_bar = px.bar(
             category_counts,
             x=category_counts.index,
             y=category_counts.values,
+            # Labels defined here are for Plotly's internal use and hover
             labels={'x': 'Job Category', 'y': 'Number of Postings'},
             title="", # Title handled by subheader
             color_discrete_sequence=px.colors.sequential.Plasma,
@@ -572,7 +587,9 @@ else: # Proceed with displaying KPIs and plots if data is not empty
             font_color='#ffffff',
             title_font_size=22,
             font=dict(family='Inter', size=12),
-            hoverlabel=dict(bgcolor="#2d3748", font_size=12, font_family="Inter") # Darker hover label
+            hoverlabel=dict(bgcolor="#2d3748", font_size=12, font_family="Inter"), # Darker hover label
+            xaxis_title='Job Category', # Explicitly set x-axis title
+            yaxis_title='Number of Postings' # Explicitly set y-axis title
         )
         st.plotly_chart(fig_category_bar, use_container_width=True)
     else:
@@ -581,6 +598,7 @@ else: # Proceed with displaying KPIs and plots if data is not empty
 
     # --- Top Job Titles ---
     st.subheader(f"Top 10 Job Titles in {selected_state if selected_state != 'All' else 'All States'}")
+    # Use the processed 'job_title' column
     job_title_counts = filtered_df['job_title'].value_counts().head(10)
     if not job_title_counts.empty:
         fig_job_title_bar = px.bar(
@@ -599,7 +617,9 @@ else: # Proceed with displaying KPIs and plots if data is not empty
             font_color='#ffffff',
             title_font_size=22,
             font=dict(family='Inter', size=12),
-            hoverlabel=dict(bgcolor="#2d3748", font_size=12, font_family="Inter") # Darker hover label
+            hoverlabel=dict(bgcolor="#2d3748", font_size=12, font_family="Inter"), # Darker hover label
+            yaxis_title='Job Title', # Explicitly set y-axis title
+            xaxis_title='Number of Postings' # Explicitly set x-axis title
         )
         st.plotly_chart(fig_job_title_bar, use_container_width=True)
     else:
@@ -608,6 +628,7 @@ else: # Proceed with displaying KPIs and plots if data is not empty
 
     # --- Top Companies ---
     st.subheader(f"Top 10 Companies with Most Job Postings in {selected_state if selected_state != 'All' else 'All States'}")
+    # Use the processed 'company_name' column
     company_counts = filtered_df['company_name'].value_counts().head(10)
     if not company_counts.empty:
         fig_company_bar = px.bar(
@@ -626,7 +647,9 @@ else: # Proceed with displaying KPIs and plots if data is not empty
             font_color='#ffffff',
             title_font_size=22,
             font=dict(family='Inter', size=12),
-            hoverlabel=dict(bgcolor="#2d3748", font_size=12, font_family="Inter") # Darker hover label
+            hoverlabel=dict(bgcolor="#2d3748", font_size=12, font_family="Inter"), # Darker hover label
+            yaxis_title='Company Name', # Explicitly set y-axis title
+            xaxis_title='Number of Postings' # Explicitly set x-axis title
         )
         st.plotly_chart(fig_company_bar, use_container_width=True)
     else:
@@ -669,39 +692,48 @@ else: # Proceed with displaying KPIs and plots if data is not empty
 
     try:
         # Apply skill extraction on the filtered data
-        filtered_df['skills'] = filtered_df['job_description'].apply(lambda x: extract_skills(x, skill_keywords_lower))
+        # Ensure 'job_description' is string type before applying
+        if 'job_description' in filtered_df.columns:
+            filtered_df['skills'] = filtered_df['job_description'].apply(lambda x: extract_skills(x, skill_keywords_lower))
 
-        all_skills = [skill for sublist in filtered_df['skills'] for skill in sublist]
-        skill_counts = Counter(all_skills)
-        top_skills = skill_counts.most_common(15) # Show top 15 skills
+            all_skills = [skill for sublist in filtered_df['skills'] for skill in sublist]
+            skill_counts = Counter(all_skills)
+            top_skills = skill_counts.most_common(15) # Show top 15 skills
 
-        if top_skills:
-            skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
-            fig_skills_bar = px.bar(
-                skills_df,
-                x='Count',
-                y='Skill',
-                orientation='h',
-                labels={'x': 'Number of Job Postings', 'y': 'Skill'},
-                title="", # Title handled by subheader
-                color_discrete_sequence=px.colors.sequential.Plasma,
-                template="plotly_dark" # Apply dark theme
-            )
-            fig_skills_bar.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font_color='#ffffff',
-                title_font_size=22,
-                font=dict(family='Inter', size=12),
-                 hoverlabel=dict(bgcolor="#2d3748", font_size=12, font_family="Inter") # Darker hover label
-            )
-            st.plotly_chart(fig_skills_bar, use_container_width=True)
+            if top_skills:
+                skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
+                # Ensure 'Skill' column in skills_df is string type and handle potential NaNs (unlikely here but for robustness)
+                skills_df['Skill'] = skills_df['Skill'].astype(str).fillna('Unknown Skill')
+
+                fig_skills_bar = px.bar(
+                    skills_df,
+                    x='Count',
+                    y='Skill',
+                    orientation='h',
+                    labels={'x': 'Number of Job Postings', 'y': 'Skill'},
+                    title="", # Title handled by subheader
+                    color_discrete_sequence=px.colors.sequential.Plasma,
+                    template="plotly_dark" # Apply dark theme
+                )
+                fig_skills_bar.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='#ffffff',
+                    title_font_size=22,
+                    font=dict(family='Inter', size=12),
+                     hoverlabel=dict(bgcolor="#2d3748", font_size=12, font_family="Inter"), # Darker hover label
+                     xaxis_title='Number of Job Postings', # Explicitly set x-axis title
+                     yaxis_title='Skill' # Explicitly set y-axis title
+                )
+                st.plotly_chart(fig_skills_bar, use_container_width=True)
+            else:
+                st.info("No skills found in the job descriptions for the selected filters.")
         else:
-            st.info("No skills found in the job descriptions for the selected filters.")
+             st.warning("The 'job_description' column is not available in the dataset for skills analysis.")
 
     except KeyError:
-        st.error("Error: The 'job_description' column is missing from the dataset.")
-        logging.error("KeyError: 'job_description' column missing.")
+        st.error("Error accessing 'job_description' column for skills extraction. Please check your data.")
+        logging.error("KeyError: 'job_description' column missing during skill extraction.")
     except Exception as e:
         st.error(f"An unexpected error occurred while extracting skills: {e}")
         logging.exception(f"An unexpected error occurred during skill extraction: {e}")
@@ -711,11 +743,12 @@ else: # Proceed with displaying KPIs and plots if data is not empty
     st.subheader("Job Type Analysis")
     if 'job_type' in filtered_df.columns:
         # Ensure 'job_type' is not empty before proceeding
-        if not filtered_df['job_type'].dropna().empty:
+        # The fillna('') is done in filter_data now
+        if not filtered_df['job_type'].empty: # Check if column exists and has data
             # Create a new column 'job_type_category'
             # Handle potential variations and map to Full-time/Part-time
             def categorize_job_type(job_type_str):
-                if pd.isna(job_type_str):
+                if pd.isna(job_type_str) or job_type_str == '': # Handle NaN and empty string
                     return "Other/Unspecified"
                 job_type_lower = str(job_type_str).lower() # Ensure it's a string before lowering
                 if 'full-time' in job_type_lower or 'full time' in job_type_lower:
@@ -726,7 +759,8 @@ else: # Proceed with displaying KPIs and plots if data is not empty
                     # Catch any other non-matching string values here
                     return 'Other/Unspecified'
 
-            filtered_df['job_type_category'] = filtered_df['job_type'].apply(categorize_job_type)
+            # Apply categorization, ensure the output is string type
+            filtered_df['job_type_category'] = filtered_df['job_type'].apply(categorize_job_type).astype(str)
 
             # Calculate the frequency of each job type category
             job_type_counts = filtered_df['job_type_category'].value_counts()
@@ -746,8 +780,7 @@ else: # Proceed with displaying KPIs and plots if data is not empty
                     hoverinfo='label+percent+value',
                     textinfo='percent', # Only show percentage on the slice
                     marker=dict(line=dict(color='#1f1f1f', width=2)),
-                    # Use 'auto' for text position initially, Plotly often does well
-                    textposition='auto',
+                    textposition='auto', # Let Plotly auto-position text
                     insidetextorientation='auto',
                     pull=[0.05] * len(job_type_counts) # Slightly pull slices for emphasis
                 )
@@ -772,7 +805,7 @@ else: # Proceed with displaying KPIs and plots if data is not empty
                 with col2:
                     st.markdown("### Observations on Job Type")
                     # Using HTML/CSS for the observations list to match summary style
-                    observations_html = "<div class='summary-point' style='border-left: none; box-shadow: none; background-color: #2d3748;'>" # Use a similar style but adjust
+                    observations_html = "<div class='summary-point' style='border-left: none; box-shadow: none; background-color: #2d3748;'>"
                     observations_html += "<p>Based on the current filters:</p><ul>"
                     for job_type, count in job_type_counts.items():
                         percentage = (count / job_type_counts.sum()) * 100 if job_type_counts.sum() > 0 else 0
@@ -820,6 +853,7 @@ html_code = """
 """
 
 # Add company summary only if company_counts is available and not empty
+# Ensure company_counts was calculated and is not empty
 if 'company_counts' in locals() and not company_counts.empty:
     # Ensure we handle potential empty index gracefully
     if not company_counts.index.empty:
@@ -836,6 +870,7 @@ if 'company_counts' in locals() and not company_counts.empty:
         """
 
 # Add skills summary only if top_skills is available and not empty
+# Ensure top_skills was calculated and is not empty
 if 'top_skills' in locals() and top_skills:
      # List top 5 skills if available
      num_skills_to_list = min(5, len(top_skills))
@@ -849,6 +884,7 @@ if 'top_skills' in locals() and top_skills:
         """
 
 # Add job type summary only if job_type_counts is available and not empty
+# Ensure job_type_counts was calculated and is not empty
 if 'job_type_counts' in locals() and not job_type_counts.empty:
     full_time_percentage = job_type_counts.get('Full-time', 0) / job_type_counts.sum() * 100 if job_type_counts.sum() > 0 else 0
     html_code += f"""
@@ -861,7 +897,7 @@ if 'job_type_counts' in locals() and not job_type_counts.empty:
 html_code += """
     <div class="summary-point">
         <h3>7. Further Research Potential</h3>
-        <p>This analysis serves as a foundation. Future exploration could involve examining <span class="highlight">salary data</span>, a more granular <span class="highlight">geographic breakdown</span>, and the <span class="highlight">evolution of skill demand</span> over time.</p>
+        <p>This analysis serves as a foundation. Future exploration could involve examining <span class="highlight">salary data</span>, a more granular <span class="highlight">geographical breakdown</span>, and the <span class="highlight">evolution of skill demand</span> over time.</p>
     </div>
 </div>
 """
@@ -871,7 +907,7 @@ html_code += """
 formatted_html = html_code.format(
     total_postings=total_postings,
     unique_categories=unique_categories,
-    top_category=top_category if selected_category == "All" or top_category == "N/A" else f"the selected {selected_category} category ({top_category})", # Be more specific if a category is selected and top_category is meaningful
+    top_category=top_category if selected_category == "All" or top_category == "N/A" else f"the selected {selected_category} category ({top_category})",
     top_title=top_title
 )
 
