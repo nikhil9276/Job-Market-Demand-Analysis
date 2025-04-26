@@ -15,14 +15,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-# --- Add Font Awesome for icons (Separate markdown block) ---
-# Adding this in a separate block to ensure it loads correctly for HTML elements
-st.markdown("""
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-""", unsafe_allow_html=True)
-
-
-# Custom CSS for enhanced appearance (Your initial CSS)
+# Custom CSS for enhanced appearance
 custom_css = """
 <style>
 body {
@@ -223,7 +216,6 @@ h1 {
     border-radius: 15px;
     color: #ffffff;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    margin-top: 0;
 }
 .top-job-title-container {
     background-color: #2d3748;
@@ -311,7 +303,7 @@ st.markdown("This project aims to provide insights into the current job market b
 # --- Add Logo ---
 def get_base64_of_file(path):
     with open(path, "rb") as f:
-        encoded_image = base64.b64encode(f.read()).decode()
+        encoded_image = base64.b64b64encode(f.read()).decode()
     return f"data:image/png;base64,{encoded_image}"
 
 logo_path =  "indeed_logo.png"  # Make sure this is the correct relative path to your logo
