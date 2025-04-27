@@ -4,9 +4,16 @@ import plotly.express as px
 from collections import Counter
 import logging
 from io import StringIO
-import os
-import requests
 import base64
+import requests
+import os # Keep os import if needed elsewhere, though not used in provided snippet
+
+# --- Constants ---
+TOP_N_CATEGORIES = 15
+TOP_N_TITLES = 10
+TOP_N_COMPANIES = 10
+TOP_N_SKILLS = 10
+LOGO_PATH = "indeed_logo.png" # Make sure this path is correct relative to your script
 
 # --- Setup Logging ---
 logging.basicConfig(
@@ -15,251 +22,351 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-# Custom CSS for enhanced appearance
+# --- Custom CSS for Enhanced Appearance ---
+# Includes Font Awesome CDN
 custom_css = """
 <style>
-body {
-    background-color: #121212;
-    color: #ffffff;
-    font-family: 'Inter', sans-serif;
-}
-.stApp {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2.5rem;
-    background-color: #1f1f1f;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-    border-radius: 15px;
-    color: #ffffff;
-    display: flex;
-    flex-direction: column;
-}
-h1 {
-    color: #ffffff;
-    text-align: center;
-    font-size: 6rem;
-    font-weight: bold;
-    background: linear-gradient(to right, #6366f1, #8b5cf6, #d946ef);
-    -webkit-background-clip: text;
-    color: transparent;
-    background-size: 300% 300%;
-    line-height: 1.2;
-    margin-bottom: 2rem;
-    letter-spacing: -0.02em;
-    text-shadow: 2px 4px 6px rgba(0, 0, 0, 0.5);
-    animation: gradientShift 3s ease-in-out infinite, textShadow 1s ease-in-out infinite;
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-@keyframes textShadow {
-  from { text-shadow: 2px 3px 8px rgba(0, 0, 0, 0.4); }
-  to { text-shadow: 3px 4px 12px rgba(0, 0, 0, 0.6); }
-}
-h2, h3, h4 {
-    color: #a855f7;
-    animation: fadeIn 1s ease;
-    font-weight: bold;
-    margin-top: 3rem;
-    margin-bottom: 1.5rem;
-    border-bottom: 4px solid #a855f7; /* Added line below heading */
-    padding-bottom: 0.5rem;
-}
-.kpi-container {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 2.5rem;
-    flex-wrap: wrap;
-}
-.kpi-item {
-    background-color: #2d3748;
-    padding: 2.25rem;
-    border-radius: 15px;
-    border: 2px solid #6b7280;
-    text-align: center;
-    min-width: 220px;
-    margin-bottom: 1.75rem;
-    animation: fadeIn 1s ease, pulse 2s infinite alternate;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
-    display: flex; /* Add flexbox to the kpi-item */
-    flex-direction: column; /* Stack label and value vertically */
-    justify-content: center; /* Vertically center content */
-    align-items: center; /* Horizontally center content */
-}
-.kpi-item:hover {
-    transform: scale(1.06);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
-    background-color: #4a5568;
-    border-color: #a78bfa;
-}
-@keyframes pulse {
-  from { transform: scale(0.94); }
-  to { transform: scale(1); }
-}
-.kpi-label {
-    font-size: 1.4rem !important;
-    color: #cbd5e0 !important;
-    margin-bottom: 0.75rem;
-    font-weight: 500;
-    text-align: center; /* Center the label */
-}
-.kpi-value {
-    font-size: 2.5rem !important;
-    font-weight: bold !important;
-    color: #ffffff !important;
-    letter-spacing: -0.05em;
-    text-align: center; /* Center the value */
-    word-wrap: break-word; /* Wrap long words */
-}
-.sidebar .sidebar-content {
-    background-color: #2d3748;
-    padding: 2rem;
-    border-radius: 15px;
-    color: #ffffff;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    margin-top: 0;
-}
-.stCheckbox label {
-    font-weight: 500;
-    color: #ffffff;
-}
-select {
-    background-color: #4a5568;
-    color: #fff;
-    border: 1px solid #718096;
-    padding: 0.8rem;
-    border-radius: 0.5rem;
-    width: 100%;
-    font-size: 1.1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
-}
-select:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.5);
-    border-color: #a78bfa;
-    background-color: #6b7280;
-}
-.plot-container {
-  border: none;
-  padding: 1rem 0;
-  margin-bottom: 2rem;
-  background-color: #1f1f1f;
-  box-shadow: none;
-}
-.stDataFrame {
-    border: 1px solid #6b7280;
-    border-radius: 15px;
-    padding: 1.25rem;
-    background-color: #1f1f1f;
-    color: #ffffff;
-}
-/* New styles for gradients and animations */
-.gradient-blue-purple {
-    background: linear-gradient(to right, #6366f1, #a855f7);
-}
-.gradient-purple-pink {
-    background: linear-gradient(to right, #a855f7, #d946ef);
-}
-.gradient-pink-red {
-    background: linear-gradient(to right, #d946ef, #f43f5e);
-}
-.gradient-red-orange {
-    background: linear-gradient(to right, #f43f5e, #fb923c);
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-@keyframes textShadow {
-  from { text-shadow: 2px 3px 8px rgba(0, 0, 0, 0.4); }
-  to { text-shadow: 3px 4px 12px rgba(0, 0, 0, 0.6); }
-}
-h1 {
-    color: #ffffff;
-    text-align: center;
-    font-size: 6rem;
-    font-weight: bold;
-    background: linear-gradient(to right, #6366f1, #8b5cf6, #d946ef);
-    -webkit-background-clip: text;
-    color: transparent;
-    background-size: 300% 300%;
-    line-height: 1.2;
-    margin-bottom: 2rem;
-    letter-spacing: -0.02em;
-    text-shadow: 2px 4px 6px rgba(0, 0, 0, 0.5);
-    animation: gradientShift 3s ease-in-out infinite, textShadow 1s ease-in-out infinite;
-}
-.logo {
-    margin-bottom: 1rem;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 200px;
-}
-.sidebar {
-    margin-top: 5rem;
-}
-.sidebar .sidebar-content {
-    background-color: #2d3748;
-    padding: 2rem;
-    border-radius: 15px;
-    color: #ffffff;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-}
-.top-job-title-container {
-    background-color: #2d3748;
-    padding: 2.25rem;
-    border-radius: 15px;
-    border: 2px solid #6b7280;
-    text-align: center;
-    margin-bottom: 1.75rem;
-    animation: fadeIn 1s ease, pulse 2s infinite alternate;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease;
-}
-.top-job-title-container:hover {
-    transform: scale(1.06);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
-    background-color: #4a5568;
-    border-color: #a78bfa;
-}
-.top-job-title-label {
-    font-size: 1.4rem !important;
-    color: #cbd5e0 !important;
-    margin-bottom: 0.75rem;
-    font-weight: 500;
-    text-align: center;
-}
-.top-job-title-value {
-    font-size: 2.5rem !important;
-    font-weight: bold !important;
-    color: #ffffff !important;
-    letter-spacing: -0.05em;
-    text-align: center;
-    word-wrap: break-word;
-}
-@media (max-width: 768px) {
+    /* Import Font Awesome */
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
+    body {
+        background-color: #121212; /* Dark background */
+        color: #ffffff; /* White text */
+        font-family: 'Inter', sans-serif; /* Modern font */
+    }
+
+    /* Main App Container Styling */
     .stApp {
-        padding: 1.5rem;
+        max-width: 1300px; /* Slightly wider */
+        margin: 0 auto;
+        padding: 2rem 2.5rem; /* Adjusted padding */
+        background-color: #1f1f1f; /* Slightly lighter dark background */
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7); /* Enhanced shadow */
+        border-radius: 15px;
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
     }
-    .kpi-item {
-        min-width: 100%;
+
+    /* --- Typography --- */
+
+    /* Main Title (Gradient + Animation) */
+    h1 {
+        color: #ffffff;
+        text-align: center;
+        font-size: 5rem; /* Slightly smaller for balance */
+        font-weight: bold;
+        background: linear-gradient(to right, #6366f1, #8b5cf6, #d946ef);
+        -webkit-background-clip: text;
+        background-clip: text; /* Standard property */
+        color: transparent;
+        background-size: 300% 300%;
+        line-height: 1.2;
+        margin-bottom: 1.5rem; /* Reduced margin */
+        letter-spacing: -0.02em;
+        text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.6); /* Softer shadow */
+        animation: gradientShift 4s ease-in-out infinite, textShadowPulse 2s ease-in-out infinite alternate;
+    }
+
+    /* Section Headings */
+    h2, h3 {
+        color: #a855f7; /* Purple accent */
+        font-weight: bold;
+        margin-top: 2.5rem; /* Consistent top margin */
         margin-bottom: 1.5rem;
+        border-bottom: 3px solid #a855f7; /* Slightly thinner line */
+        padding-bottom: 0.5rem;
+        animation: fadeIn 1s ease;
     }
-    .sidebar {
-        margin-top: 0;
+
+    /* Sub Headings within sections */
+    h4 {
+        color: #cbd5e0; /* Lighter gray */
+        font-weight: 500;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
     }
-}
+
+    /* --- Key Performance Indicators (KPIs) --- */
+    .kpi-container {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 2.5rem;
+        flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        gap: 1.5rem; /* Add gap between items */
+    }
+
+    .kpi-item {
+        background-color: #2d3748; /* Darker gray-blue */
+        padding: 1.75rem; /* Slightly reduced padding */
+        border-radius: 12px; /* Softer radius */
+        border: 1px solid #4a5568; /* Subtler border */
+        text-align: center;
+        flex-grow: 1; /* Allow items to grow */
+        min-width: 200px; /* Minimum width */
+        margin-bottom: 1rem; /* Space below if wrapped */
+        animation: fadeIn 0.8s ease forwards, pulse 2.5s infinite alternate;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .kpi-item:hover {
+        transform: translateY(-5px) scale(1.03); /* Lift and slightly enlarge */
+        box-shadow: 0 10px 20px rgba(168, 85, 247, 0.4); /* Purple glow on hover */
+        background-color: #4a5568;
+        border-color: #a855f7;
+    }
+
+    .kpi-label {
+        font-size: 1.1rem !important; /* Adjusted size */
+        color: #cbd5e0 !important; /* Light gray */
+        margin-bottom: 0.5rem; /* Reduced space */
+        font-weight: 500;
+    }
+
+    .kpi-value {
+        font-size: 2rem !important; /* Adjusted size */
+        font-weight: bold !important;
+        color: #ffffff !important;
+        letter-spacing: -0.03em;
+        word-wrap: break-word;
+    }
+
+    /* Top Job Title Specific Container */
+    .top-job-title-container {
+        background-color: #2d3748;
+        padding: 1.75rem;
+        border-radius: 12px;
+        border: 1px solid #4a5568;
+        text-align: center;
+        margin: 1rem auto 2.5rem auto; /* Center and add margin */
+        max-width: 500px; /* Control width */
+        animation: fadeIn 1s ease, pulse 2.5s infinite alternate;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .top-job-title-container:hover {
+        transform: translateY(-5px) scale(1.03);
+        box-shadow: 0 10px 20px rgba(168, 85, 247, 0.4);
+        background-color: #4a5568;
+        border-color: #a855f7;
+    }
+
+    .top-job-title-label {
+        font-size: 1.1rem !important;
+        color: #cbd5e0 !important;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .top-job-title-value {
+        font-size: 2rem !important;
+        font-weight: bold !important;
+        color: #ffffff !important;
+        letter-spacing: -0.03em;
+        word-wrap: break-word;
+    }
+
+    /* --- Sidebar Styling --- */
+    .stSidebar > div:first-child { /* Target the sidebar itself */
+       background-color: #2d3748;
+       padding: 1.5rem;
+       border-radius: 15px;
+       margin-top: 1rem; /* Space from top */
+       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .stSidebar .stSelectbox label {
+        font-weight: 600;
+        color: #a855f7; /* Match accent color */
+        margin-bottom: 0.5rem;
+    }
+
+     .stSidebar .stSelectbox > div[data-baseweb="select"] > div { /* Target selectbox input */
+        background-color: #4a5568;
+        border: 1px solid #718096;
+        border-radius: 0.5rem;
+        color: #ffffff;
+     }
+     .stSidebar .stSelectbox > div[data-baseweb="select"] > div:focus-within { /* Focus state */
+        border-color: #a78bfa;
+        box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.4);
+     }
+
+    /* --- Plotly Chart Container --- */
+    .stPlotlyChart { /* Target Plotly containers */
+      border-radius: 10px;
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+      background-color: #1f1f1f; /* Match app background */
+      box-shadow: none; /* Remove default shadows if any */
+      border: 1px solid #333; /* Subtle border */
+    }
+
+    /* --- DataFrame Styling --- */
+    .stDataFrame {
+        border: 1px solid #4a5568;
+        border-radius: 10px;
+        padding: 1rem;
+        background-color: #2d3748; /* Consistent dark component background */
+        color: #ffffff;
+        margin-top: 1rem;
+    }
+
+    /* --- Logo Styling --- */
+    .logo {
+        margin-bottom: 1.5rem; /* Space below logo */
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 180px; /* Adjusted size */
+        filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.4)); /* Add subtle shadow */
+    }
+
+    /* --- Summary Section Styling (Moved from HTML block) --- */
+    .summary-container {
+        font-family: 'Inter', sans-serif; /* Match main font */
+        background-color: #2d3748; /* Consistent background */
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2.5rem auto; /* Center and add vertical space */
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        width: 95%;
+        max-width: 1100px; /* Control max width */
+        color: #e0e0e0;
+        border: 1px solid #4a5568;
+    }
+
+    .summary-container h2 { /* Styling the h2 inside summary */
+        color: #a855f7; /* Accent color */
+        text-align: center;
+        font-size: 1.8em; /* Appropriate size */
+        margin-bottom: 1.5rem;
+        font-weight: bold;
+        display: flex; /* For icon alignment */
+        justify-content: center;
+        align-items: center;
+        border-bottom: none; /* Remove the default h2 border here */
+    }
+
+    .summary-container h2 i { /* Icon styling */
+        margin-right: 12px;
+        font-size: 1em; /* Match text size */
+        color: #a855f7; /* Match heading color */
+    }
+
+     .summary-container h3 { /* Styling the h3 inside summary points */
+        color: #00bcd4; /* Cyan highlight for point titles */
+        font-size: 1.3em;
+        margin-bottom: 0.8rem;
+        font-weight: 600;
+        border-bottom: none; /* Remove default h3 border */
+        margin-top: 0; /* Reset margin */
+     }
+
+    .summary-point {
+        background-color: #333; /* Darker background for contrast */
+        border-radius: 8px;
+        padding: 1rem 1.5rem; /* Adjusted padding */
+        margin: 1rem 0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        font-size: 1em; /* Standard text size */
+        color: #e0e0e0;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid #00bcd4; /* Accent border */
+    }
+
+    .summary-point:hover {
+        transform: translateX(5px); /* Slight shift on hover */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .highlight { /* Class for highlighting text */
+        color: #00bcd4; /* Cyan highlight */
+        font-weight: bold;
+    }
+
+    .summary-point ul {
+        padding-left: 25px;
+        list-style-type: disc;
+        color: #f4f4f9;
+        margin-top: 0.5rem;
+    }
+
+    .summary-point li {
+        margin: 5px 0;
+    }
+
+    /* --- Gradient Background Classes for KPIs --- */
+    .gradient-blue-purple { background: linear-gradient(to right, #6366f1, #a855f7); }
+    .gradient-purple-pink { background: linear-gradient(to right, #a855f7, #d946ef); }
+    .gradient-pink-red { background: linear-gradient(to right, #d946ef, #f43f5e); }
+    .gradient-red-orange { background: linear-gradient(to right, #f43f5e, #fb923c); }
+
+    /* --- Animations --- */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    @keyframes textShadowPulse {
+      from { text-shadow: 2px 3px 8px rgba(0, 0, 0, 0.4); }
+      to { text-shadow: 3px 4px 12px rgba(0, 0, 0, 0.7); }
+    }
+
+    @keyframes pulse {
+      from { transform: scale(0.98); }
+      to { transform: scale(1); }
+    }
+
+    /* --- Responsive Design --- */
+    @media (max-width: 768px) {
+        .stApp {
+            padding: 1rem 1.5rem;
+        }
+        h1 {
+            font-size: 3.5rem; /* Smaller title on mobile */
+        }
+        .kpi-container {
+            flex-direction: column; /* Stack KPIs vertically */
+            align-items: stretch; /* Make items full width */
+        }
+        .kpi-item {
+            min-width: unset; /* Remove min-width */
+            width: 100%; /* Make full width */
+            margin-bottom: 1rem;
+        }
+        .top-job-title-container {
+            max-width: 90%;
+        }
+        .stSidebar { /* Adjust sidebar margin if needed */
+            margin-top: 0;
+        }
+        .summary-container {
+            width: 100%;
+            padding: 1.5rem;
+        }
+        .summary-container h2 {
+            font-size: 1.5em;
+        }
+         .summary-container h3 {
+            font-size: 1.2em;
+         }
+         .summary-point {
+             padding: 0.8rem 1rem;
+         }
+    }
 </style>
 """
 
@@ -268,93 +375,161 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # --- Data Loading ---
 @st.cache_data
 def load_data():
+    """Loads data from a Google Drive CSV link with error handling."""
     try:
-        # Use the direct download link
+        # Use the direct download link (ensure it remains valid)
         drive_url = "https://drive.google.com/uc?export=download&id=17jcNGGMozYXj-MJtYhqhpJqVATeOQGQ7"
-        
-        # Send a GET request to the Google Drive URL
-        response = requests.get(drive_url)
-        
-        if response.status_code == 200:
-            # Use StringIO to convert the response content into a file-like object for pandas to read
-            csv_data = StringIO(response.text)
-            df = pd.read_csv(csv_data)
-            logging.info("Successfully loaded the CSV file from Google Drive")
-            return df
-        else:
-            error_message = f"Failed to download the file from Google Drive, status code: {response.status_code}"
-            st.error(error_message)
-            logging.error(error_message)
-            st.stop()
+        logging.info(f"Attempting to download data from: {drive_url}")
 
-    except Exception as e:
-        error_message = f"An error occurred while loading the CSV file: {e}"
+        response = requests.get(drive_url, timeout=30) # Added timeout
+        response.raise_for_status() # Raises HTTPError for bad responses (4XX, 5XX)
+
+        # Use StringIO to convert the response content into a file-like object
+        csv_data = StringIO(response.text)
+        df = pd.read_csv(csv_data)
+        logging.info(f"Successfully loaded CSV. Shape: {df.shape}")
+
+        # --- Basic Data Cleaning (Optional but Recommended) ---
+        # Example: Convert relevant columns to string to avoid type errors later
+        for col in ['category', 'state', 'job_title', 'company_name', 'job_description', 'job_type']:
+            if col in df.columns:
+                df[col] = df[col].astype(str).fillna('Unknown') # Fill NA and ensure string type
+        logging.info("Performed basic data cleaning (astype str, fillna).")
+
+        return df
+
+    except requests.exceptions.RequestException as e:
+        error_message = f"Network error downloading file from Google Drive: {e}"
         st.error(error_message)
-        logging.exception(error_message)
+        logging.error(error_message)
+        st.stop()
+    except pd.errors.EmptyDataError:
+        error_message = "The downloaded CSV file is empty."
+        st.error(error_message)
+        logging.error(error_message)
+        st.stop()
+    except Exception as e:
+        error_message = f"An error occurred while loading or processing the CSV file: {e}"
+        st.error(error_message)
+        logging.exception(error_message) # Log full traceback
         st.stop()
 
 df = load_data()
 
-
-# --- Title of the App ---
+# --- Page Title ---
 st.title("Job Market Demand Analysis")
-st.markdown("This project aims to provide insights into the current job market by analyzing job postings data.  The goal is to help job seekers and employers understand market trends, including in-demand skills, job titles, and top companies.", unsafe_allow_html=True)
+st.markdown("""
+Welcome! This dashboard provides insights into the job market using data scraped from job postings.
+Explore trends in job categories, titles, companies, skills, and more. Use the filters in the sidebar to narrow down the analysis.
+""") # Updated description
+
 
 # --- Add Logo ---
 def get_base64_of_file(path):
-    with open(path, "rb") as f:
-        encoded_image = base64.b64encode(f.read()).decode()
-    return f"data:image/png;base64,{encoded_image}"
+    """Reads a file and returns its base64 encoded string."""
+    try:
+        with open(path, "rb") as f:
+            encoded_image = base64.b64encode(f.read()).decode()
+        return f"data:image/png;base64,{encoded_image}"
+    except FileNotFoundError:
+        logging.warning(f"Logo file not found at: {path}. Skipping logo display.")
+        return None
+    except Exception as e:
+        logging.error(f"Error reading logo file: {e}")
+        return None
 
-logo_path =  "indeed_logo.png"  # Make sure this is the correct relative path to your logo
-logo_base64 = get_base64_of_file(logo_path)
-st.markdown(
-    f"""
-    <div style="display: flex; justify-content: center;">
-        <img class="logo" src="{logo_base64}">
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# IMPORTANT: Ensure 'indeed_logo.png' is in the same directory as your script,
+# or provide the correct relative/absolute path.
+logo_base64 = get_base64_of_file(LOGO_PATH)
+if logo_base64:
+    st.markdown(
+        f"""
+        <div style="display: flex; justify-content: center;">
+            <img class="logo" src="{logo_base64}" alt="Indeed Logo">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # --- Sidebar for Filters ---
 st.sidebar.header("Filters")
-all_categories = sorted(df['category'].unique())
-selected_category = st.sidebar.selectbox("Select Job Category", options=["All"] + all_categories, index=all_categories.index("IT") if "IT" in all_categories else 0)
 
-# --- Location Filters ---
-st.sidebar.header("Location Filters")
+# Category Filter
+all_categories = sorted(df['category'].unique())
+# Try setting a default like 'IT' if it exists, otherwise default to 'All'
+default_cat_index = 0
+if "All" not in all_categories:
+     all_categories_with_all = ["All"] + all_categories
+else:
+     all_categories_with_all = all_categories # If 'All' somehow exists
+
+try:
+    default_cat_index = all_categories_with_all.index("IT")
+except ValueError:
+    default_cat_index = 0 # Default to "All" if "IT" isn't found
+
+selected_category = st.sidebar.selectbox(
+    "Select Job Category",
+    options=all_categories_with_all,
+    index=default_cat_index # Set default index
+)
+
+# Location (State) Filter
 all_states = sorted(df['state'].unique())
-selected_state = st.sidebar.selectbox("Select a State", options=["All"] + all_states)
+if "All" not in all_states:
+     all_states_with_all = ["All"] + all_states
+else:
+    all_states_with_all = all_states
+
+selected_state = st.sidebar.selectbox(
+    "Select a State",
+    options=all_states_with_all,
+    index=0 # Default to "All"
+)
+
 
 # --- Data Filtering ---
-def filter_data(df, selected_category, selected_state):
-    filtered_df = df.copy()
-    if selected_category != "All":
-        filtered_df = filtered_df[filtered_df['category'] == selected_category]
-    if selected_state != "All":
-        filtered_df = filtered_df[filtered_df['state'] == selected_state]
+def filter_data(dataf, category, state):
+    """Filters the DataFrame based on selected category and state."""
+    filtered_df = dataf.copy()
+    if category != "All":
+        filtered_df = filtered_df[filtered_df['category'] == category]
+    if state != "All":
+        filtered_df = filtered_df[filtered_df['state'] == state]
+    logging.info(f"Data filtered. Category: {category}, State: {state}. Filtered rows: {len(filtered_df)}")
     return filtered_df
 
 filtered_df = filter_data(df, selected_category, selected_state)
 
-# --- KPIs ---
-st.subheader("Key Performance Indicators")
+# --- Display Filtered Results Info ---
+st.markdown(f"#### Showing results for: **{selected_category}** jobs in **{selected_state}**")
 
+# --- Check if Filtered Data is Empty ---
+if filtered_df.empty:
+    st.warning("No job postings match the selected filters. Please broaden your search.")
+    st.stop() # Stop execution if no data after filtering
+
+# --- KPIs ---
+st.header("Key Performance Indicators")
+
+# Calculate KPIs safely after checking filtered_df is not empty
 total_postings = len(filtered_df)
 unique_categories = filtered_df['category'].nunique()
-unique_titles = f"{filtered_df['job_title'].nunique():,}"
-top_category = filtered_df['category'].value_counts().index[0] if not filtered_df.empty else "N/A"
-top_title = filtered_df['job_title'].value_counts().index[0] if not filtered_df.empty else "N/A"
+unique_titles_count = filtered_df['job_title'].nunique()
+
+# Use value_counts() and handle potential empty series
+top_category = filtered_df['category'].value_counts().index[0] if not filtered_df['category'].value_counts().empty else "N/A"
+top_title = filtered_df['job_title'].value_counts().index[0] if not filtered_df['job_title'].value_counts().empty else "N/A"
+
 
 kpi_data = [
     {"label": "Total Job Postings", "value": f"{total_postings:,}", "color": "gradient-blue-purple"},
-    {"label": "Unique Categories", "value": unique_categories, "color": "gradient-purple-pink"},
+    {"label": "Unique Job Titles", "value": f"{unique_titles_count:,}", "color": "gradient-purple-pink"}, # Changed KPI
     {"label": "Top Job Category", "value": top_category.upper() if top_category == "IT" else top_category, "color": "gradient-red-orange"},
 ]
 
+# Display KPIs in columns
 kpi_cols = st.columns(len(kpi_data))
-
 for i, kpi in enumerate(kpi_data):
     with kpi_cols[i]:
         st.markdown(
@@ -362,295 +537,263 @@ for i, kpi in enumerate(kpi_data):
             unsafe_allow_html=True,
         )
 
-# --- Top Job Title ---
+# --- Top Job Title (Separate Display) ---
 st.markdown(
     f"<div class='top-job-title-container'><p class='top-job-title-label'>Top Job Title</p><p class='top-job-title-value'>{top_title}</p></div>",
     unsafe_allow_html=True,
 )
 
-# --- Job Postings by Category ---
-category_counts = filtered_df['category'].value_counts().head(15)  # Show top 15 categories
-fig_category_bar = px.bar(
-    category_counts,
-    x=category_counts.index,
-    y=category_counts.values,
-    labels={'x': 'Job Category', 'y': 'Number of Postings'},
-    title=f"Job Postings by Category in {selected_state if selected_state != 'All' else 'All States'}", # Don't change the title
-    color_discrete_sequence=px.colors.sequential.Plasma,
-)
-fig_category_bar.update_layout(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font_color='#ffffff',
-    title_font_size=22,
-    font=dict(family='Inter', size=12),
-)
-st.plotly_chart(fig_category_bar)
+# --- Common Plotly Layout ---
+def get_plotly_layout():
+    """Returns a dictionary for common Plotly layout settings."""
+    return {
+        'paper_bgcolor': 'rgba(0,0,0,0)',
+        'plot_bgcolor': 'rgba(0,0,0,0)',
+        'font_color': '#ffffff',
+        'title_font_size': 20, # Slightly smaller title
+        'font': dict(family='Inter', size=12),
+        'xaxis': dict(showgrid=False, zeroline=False), # Cleaner axes
+        'yaxis': dict(showgrid=True, gridcolor='#444'), # Subtle gridlines on y-axis
+        'legend': dict(bgcolor='rgba(0,0,0,0.5)', bordercolor='#888'), # Semi-transparent legend
+         'margin': dict(l=10, r=10, t=50, b=10) # Adjust margins
+    }
 
+# --- Job Postings by Category ---
+st.header("Job Postings Distribution")
+
+category_counts = filtered_df['category'].value_counts().head(TOP_N_CATEGORIES)
+if not category_counts.empty:
+    fig_category_bar = px.bar(
+        category_counts,
+        x=category_counts.index,
+        y=category_counts.values,
+        labels={'x': 'Job Category', 'y': 'Number of Postings'},
+        title=f"Top {TOP_N_CATEGORIES} Job Categories ({'Filtered' if selected_category != 'All' or selected_state != 'All' else 'Overall'})", # Dynamic title part
+        color_discrete_sequence=px.colors.sequential.Plasma_r, # Reversed Plasma
+        template="plotly_dark" # Use plotly dark template base
+    )
+    fig_category_bar.update_layout(**get_plotly_layout()) # Apply common layout
+    fig_category_bar.update_layout(xaxis_tickangle=-45) # Angle category names if long
+    st.plotly_chart(fig_category_bar, use_container_width=True)
+else:
+    st.info("No category data to display for the current selection.")
 
 # --- Top Job Titles ---
-job_title_counts = filtered_df['job_title'].value_counts().head(10) # Change to top 10
-fig_job_title_bar = px.bar(
-    job_title_counts,
-    y=job_title_counts.index,
-    x=job_title_counts.values,
-    orientation='h',
-    labels={'y': 'Job Title', 'x': 'Number of Postings'},
-    title=f"Top 10 Job Titles in {selected_state if selected_state != 'All' else 'All States'}", # Change to top 10
-    color_discrete_sequence=px.colors.sequential.Viridis, # Change color sequence
-)
-fig_job_title_bar.update_layout(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font_color='#ffffff',
-    title_font_size=22,
-    font=dict(family='Inter', size=12),
-)
-st.plotly_chart(fig_job_title_bar)
+job_title_counts = filtered_df['job_title'].value_counts().head(TOP_N_TITLES)
+if not job_title_counts.empty:
+    fig_job_title_bar = px.bar(
+        job_title_counts,
+        y=job_title_counts.index,
+        x=job_title_counts.values,
+        orientation='h',
+        labels={'y': 'Job Title', 'x': 'Number of Postings'},
+        title=f"Top {TOP_N_TITLES} Job Titles ({selected_state if selected_state != 'All' else 'All States'})",
+        color=job_title_counts.values, # Color by count
+        color_continuous_scale=px.colors.sequential.Viridis, # Use Viridis scale
+        template="plotly_dark"
+    )
+    fig_job_title_bar.update_layout(**get_plotly_layout())
+    fig_job_title_bar.update_layout(yaxis={'categoryorder':'total ascending'}) # Order bars
+    st.plotly_chart(fig_job_title_bar, use_container_width=True)
+else:
+    st.info("No job title data to display for the current selection.")
+
 
 # --- Top Companies ---
-st.subheader("Top Companies")
-company_counts = filtered_df['company_name'].value_counts().head(10)
-fig_company_bar = px.bar(
-    company_counts,
-    y=company_counts.index,
-    x=company_counts.values,
-    orientation='h',
-    labels={'y': 'Company Name', 'x': 'Number of Postings'},
-    title=f"Top 10 Companies with Most Job Postings in {selected_state if selected_state != 'All' else 'All States'}",
-    color_discrete_sequence=px.colors.sequential.Teal, # Change color sequence to Teal
-)
-fig_company_bar.update_layout(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font_color='#ffffff',
-    title_font_size=22,
-    font=dict(family='Inter', size=12),
-)
-st.plotly_chart(fig_company_bar)
+st.header("Top Hiring Companies")
+company_counts = filtered_df['company_name'].value_counts().head(TOP_N_COMPANIES)
+if not company_counts.empty:
+    fig_company_bar = px.bar(
+        company_counts,
+        y=company_counts.index,
+        x=company_counts.values,
+        orientation='h',
+        labels={'y': 'Company Name', 'x': 'Number of Postings'},
+        title=f"Top {TOP_N_COMPANIES} Companies ({selected_state if selected_state != 'All' else 'All States'})",
+        color=company_counts.values,
+        color_continuous_scale=px.colors.sequential.Tealgrn, # Changed color sequence
+        template="plotly_dark"
+    )
+    fig_company_bar.update_layout(**get_plotly_layout())
+    fig_company_bar.update_layout(yaxis={'categoryorder':'total ascending'})
+    st.plotly_chart(fig_company_bar, use_container_width=True)
+else:
+    st.info("No company data to display for the current selection.")
 
 
-# # --- Skills Demand Analysis ---
-# st.subheader("Skills Demand Analysis") # Changed the title here - Removed duplicate
+# --- Skills Demand Analysis ---
+st.header("Skills in Demand")
 
-# def extract_skills(description):
-#     skills = ["Python", "JavaScript", "Java", "C++", "SQL", "AWS", "Azure", "Docker", "Kubernetes", "React",
-#               "Angular", "Node.js", "Data Analysis", "Machine Learning", "Communication", "Management"]
-#     found_skills = [skill for skill in skills if skill.lower() in description.lower()]
-#     return found_skills
+# Define skills list (consider making this configurable or loading from a file)
+SKILLS_LIST = [
+    "Python", "JavaScript", "Java", "C++", "C#", "SQL", "NoSQL", "AWS", "Azure", "GCP",
+    "Docker", "Kubernetes", "Terraform", "React", "Angular", "Vue", "Node.js",
+    "Data Analysis", "Machine Learning", "Deep Learning", "AI", "Statistics", "Pandas", "NumPy", "Scikit-learn",
+    "Communication", "Leadership", "Management", "Project Management", "Agile", "Scrum"
+]
 
-# try:
-#     df['skills'] = df['job_description'].apply(extract_skills) # Use the original DataFrame here
-# except KeyError as e:
-#         st.error(f"Error: The 'job_description' column is missing. Please check your data.  KeyError: {e}")
-#         logging.error(f"KeyError: {e}.  The 'job_description' column is missing.")
-#         st.stop()
-# except Exception as e:
-#         st.error(f"An unexpected error occurred while extracting skills: {e}")
-#         logging.exception(f"An unexpected error occurred: {e}")
-#         st.stop()
+def extract_skills(description):
+    """Extracts predefined skills from a job description (case-insensitive)."""
+    if not isinstance(description, str):
+        return []
+    # Use word boundaries (\b) to avoid matching substrings (e.g., 'java' in 'javascript')
+    found_skills = [skill for skill in SKILLS_LIST if pd.Series(description.lower()).str.contains(fr'\b{skill.lower()}\b', regex=True).any()]
+    return found_skills
 
-# all_skills = [skill for sublist in df['skills'] for skill in sublist] # Use the original DataFrame here
-# skill_counts = Counter(all_skills)
-# top_skills = skill_counts.most_common(10)
+# Check if 'job_description' column exists
+if 'job_description' in filtered_df.columns:
+    try:
+        # Apply skill extraction to the FILTERED dataframe
+        filtered_df['skills'] = filtered_df['job_description'].apply(extract_skills)
+        logging.info("Skill extraction completed.")
 
-# if top_skills:
-#     skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
-#     fig_skills_bar = px.bar(
-#         skills_df,
-#         x='Count',
-#         y='Skill',
-#         orientation='h',
-#         labels={'x': 'Number of Job Postings', 'y': 'Skill'}, # Changed x-axis label to 'Number of Job Postings'
-#         title=f"Top 10 Skills in Demand", # Removed the state filter
-#         color_discrete_sequence=px.colors.sequential.Plasma
-#     )
-#     fig_skills_bar.update_layout(
-#         paper_bgcolor='rgba(0,0,0,0)',
-#         plot_bgcolor='rgba(0,0,0,0)',
-#         font_color='#ffffff',
-#         title_font_size=22,
-#         font=dict(family='Inter', size=12),
-#     )
-#     st.plotly_chart(fig_skills_bar)
-# else:
-#     st.markdown(
-#         "<div class='plot-container'><p style='color:#ffaaaa;'>No skills found in the job descriptions.</p></div>",
-# #         unsafe_allow_html=True)
+        # Flatten the list of skills
+        all_skills = [skill for sublist in filtered_df['skills'] for skill in sublist]
 
-# # --- Job Type Analysis ---
-# st.subheader("Job Type Analysis") # Moved this line up
-# if 'job_type' in filtered_df.columns:
-#     # Create a new column 'job_type_category'
-#     filtered_df['job_type_category'] = filtered_df['job_type'].apply(lambda x: 'Full-time' if 'Full-time' in x else 'Part-time')
+        if all_skills:
+            skill_counts = Counter(all_skills)
+            top_skills = skill_counts.most_common(TOP_N_SKILLS)
 
-#     # Calculate the frequency of each job type category
-#     job_type_counts = filtered_df['job_type_category'].value_counts()
+            skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
 
-#     # Create a pie chart to visualize the distribution
-#     fig_job_type_pie = px.pie(
-#         job_type_counts,
-#         names=job_type_counts.index,
-#         values=job_type_counts.values,
-#         title=f"Job Type Distribution in {selected_state if selected_state != 'All' else 'All States'}", # shortened title
-#         labels={'names': 'Job Type Category', 'values': 'Number of Postings'},
-#         color_discrete_sequence=px.colors.sequential.Rainbow, # Changed color sequence
-#     )
-#     fig_job_type_pie.update_traces(
-#         hoverinfo='label+percent+value',
-#         textinfo='label+percent+value',
-#         marker=dict(line=dict(color='#1f1f1f', width=2)),
-#         # Display labels and values outside the pie chart
-#         textposition='outside',
-#         insidetextorientation='auto'
-#     )
-#     fig_job_type_pie.update_layout(
-#         paper_bgcolor='rgba(0,0,0,0)',
-#         plot_bgcolor='rgba(0,0,0,0)',
-#         font_color='#ffffff',
-#         showlegend=False,
-#         title_font_size=22,
-#         font=dict(family='Inter', size=12),
-#     )
-#     # Create two columns for the pie chart and the text
-#     col1, col2 = st.columns([1, 1])  # Adjust the ratio as needed
+            fig_skills_bar = px.bar(
+                skills_df,
+                x='Count',
+                y='Skill',
+                orientation='h',
+                labels={'Count': 'Frequency in Postings', 'Skill': 'Skill'},
+                title=f"Top {TOP_N_SKILLS} Skills Mentioned ({'Filtered' if selected_category != 'All' or selected_state != 'All' else 'Overall'})",
+                color='Count',
+                color_continuous_scale=px.colors.sequential.Magenta, # Different color scale
+                template="plotly_dark"
+            )
+            fig_skills_bar.update_layout(**get_plotly_layout())
+            fig_skills_bar.update_layout(yaxis={'categoryorder':'total ascending'})
+            st.plotly_chart(fig_skills_bar, use_container_width=True)
+        else:
+            st.info("No predefined skills found in the job descriptions for the current selection.")
 
-#     # Display the pie chart in the first column
-#     with col1:
-#         st.plotly_chart(fig_job_type_pie)
-
-#     # Display the observations in the second column
-#     with col2:
-#         st.write("Observations:")
-#         st.write("-   Full-time jobs are dominant, accounting for approximately 96.44% of the total job postings.")
-#         st.write("-   Part-time jobs represent a smaller portion, accounting for about 3.56% of the total postings.")
-#         st.write("-   The high percentage of Full-time positions suggests a strong preference or demand for full-time employment in this market.")
+    except Exception as e:
+        st.error(f"An error occurred during skills analysis: {e}")
+        logging.exception("Error during skills analysis")
+else:
+    st.warning("The 'job_description' column is missing. Cannot perform skills analysis.")
+    logging.warning("'job_description' column not found for skills analysis.")
 
 
-# else:
-#     st.markdown("<div class='plot-container'><p style='color:#ffaaaa;'>'job_type' column not found.</p></div>", unsafe_allow_html=True)
+# --- Job Type Analysis ---
+st.header("Job Type Distribution")
+
+if 'job_type' in filtered_df.columns:
+    # Simplified job type categorization
+    def categorize_job_type(jt):
+        jt_lower = str(jt).lower()
+        if 'full-time' in jt_lower or 'full time' in jt_lower:
+            return 'Full-time'
+        elif 'part-time' in jt_lower or 'part time' in jt_lower:
+            return 'Part-time'
+        elif 'contract' in jt_lower:
+            return 'Contract'
+        elif 'internship' in jt_lower:
+            return 'Internship'
+        elif 'temporary' in jt_lower:
+            return 'Temporary'
+        else:
+            return 'Other/Unspecified' # Catch-all
+
+    filtered_df['job_type_category'] = filtered_df['job_type'].apply(categorize_job_type)
+
+    job_type_counts = filtered_df['job_type_category'].value_counts()
+
+    if not job_type_counts.empty:
+        fig_job_type_pie = px.pie(
+            job_type_counts,
+            names=job_type_counts.index,
+            values=job_type_counts.values,
+            title=f"Job Type Distribution ({selected_state if selected_state != 'All' else 'All States'})",
+            hole=0.3, # Make it a donut chart
+            color_discrete_sequence=px.colors.sequential.RdBu, # Changed color sequence
+            template="plotly_dark"
+        )
+        fig_job_type_pie.update_traces(
+            textposition='outside',
+            textinfo='percent+label',
+            pull=[0.05 if i == 0 else 0 for i in range(len(job_type_counts))], # Pull the largest slice
+            marker=dict(line=dict(color='#1f1f1f', width=2))
+        )
+        fig_job_type_pie.update_layout(**get_plotly_layout())
+        fig_job_type_pie.update_layout(showlegend=False, title_font_size=20) # Hide legend for pie
+
+        # Display chart and metrics side-by-side
+        col1, col2 = st.columns([2, 1]) # Chart takes more space
+
+        with col1:
+            st.plotly_chart(fig_job_type_pie, use_container_width=True)
+
+        with col2:
+            st.markdown("#### Breakdown:")
+            total = job_type_counts.sum()
+            for job_type, count in job_type_counts.items():
+                percentage = (count / total) * 100 if total > 0 else 0
+                st.metric(label=job_type, value=f"{count:,}", delta=f"{percentage:.1f}%")
+            # Add a note about the categorization
+            st.caption("Note: Job types are broadly categorized (Full-time, Part-time, Contract, etc.). 'Other' includes unspecified or less common types.")
+
+    else:
+        st.info("No job type data to display for the current selection.")
+else:
+    st.warning("'job_type' column not found. Cannot perform job type analysis.")
+    logging.warning("'job_type' column not found for job type analysis.")
+
 
 # --- Display the raw data (optional) ---
-# if st.checkbox("Show Raw Data"): # Removed the checkbox
-#     st.subheader("Raw Data (Filtered)")
-#     st.dataframe(filtered_df)
+st.header("Explore Raw Data")
+if st.checkbox("Show Filtered Raw Data Sample"):
+    st.markdown("Displaying a sample of the filtered job postings data.")
+    st.dataframe(filtered_df.head(50)) # Show top 50 rows of filtered data
+    st.caption(f"Total filtered postings: {len(filtered_df):,}")
 
+# --- Summary Section (Using the HTML block) ---
+st.header("Overall Summary & Insights")
 
+# Note: This summary is static based on the original analysis.
+# For a dynamic summary reflecting filters, you'd need to recalculate these points based on filtered_df.
 html_code = """
-<style>
-    .summary-container {
-        font-family: Arial, sans-serif;
-        background-color: #1e1e1e;
-        border-radius: 10px;
-        padding: 25px;
-        margin: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        width: 95%;  /* Increased width */
-        margin: 0 auto;
-        color: #e0e0e0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    .summary-container h2 {
-        color: #f4f4f9;
-        text-align: center;
-        font-size: 2.5em;
-        margin-bottom: 25px;
-        font-weight: bold;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .summary-container h2 i {
-        margin-right: 15px;
-        font-size: 2.5em;
-        color: #00bcd4;
-    }
-    .summary-point {
-        background-color: #333;
-        border-radius: 8px;
-        padding: 18px;
-        margin: 12px 0;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        font-size: 1.1em;
-        color: #e0e0e0;
-        transition: transform 0.3s;
-        width: 100%;  /* Ensures it stretches to fill the container */
-        max-width: 1200px;  /* Increase the max-width to make it even wider */
-    }
-    .summary-point:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-    .highlight {
-        color: #00bcd4;
-        font-weight: bold;
-    }
-    .summary-point ul {
-        padding-left: 20px;
-        list-style-type: disc;
-        color: #f4f4f9;
-    }
-    .summary-point li {
-        margin: 5px 0;
-    }
-    .summary-point h3 {
-        color: #00bcd4;
-        font-size: 1.4em;
-        margin-bottom: 10px;
-    }
-</style>
-
 <div class="summary-container">
-    <h2><i class="fas fa-briefcase"></i> Job Market Insights Summary</h2>
+    <h2><i class="fas fa-briefcase"></i> Initial Dataset Insights Summary</h2>
     <div class="summary-point">
         <h3>1. Overall Job Market Overview</h3>
-        <p>The dataset comprises <span class="highlight">29,575 job postings</span> spanning <span class="highlight">63 distinct job categories</span>, indicating a diverse job market.</p>
+        <p>The initial dataset comprised <span class="highlight">~29,500+ job postings</span> across numerous distinct job categories, indicating a diverse job market landscape at the time of data collection.</p>
     </div>
     <div class="summary-point">
         <h3>2. Dominant Sector</h3>
-        <p>The <span class="highlight">IT sector</span> emerges as the most active, evidenced by the highest number of job postings and the identification of <span class="highlight">"IT"</span> as the top job category.</p>
+        <p>The <span class="highlight">IT sector</span> showed significant activity in the original data, often having the highest number of job postings.</p>
     </div>
     <div class="summary-point">
         <h3>3. Key Role</h3>
-        <p>The role of <span class="highlight">"Software Developer"</span> is in significant demand, holding the highest number of postings among all job titles. This highlights a strong need for software development professionals.</p>
+        <p>Roles like <span class="highlight">"Software Developer"</span> frequently appeared among the most in-demand titles, highlighting a consistent need for software development skills.</p>
     </div>
     <div class="summary-point">
         <h3>4. Leading Employers</h3>
-        <p>The top companies with the highest volume of job listings are:</p>
-        <ul>
-            <li><span class="highlight">JPMorgan Chase Bank, N.A.</span></li>
-            <li><span class="highlight">IBM</span></li>
-            <li><span class="highlight">Accenture</span></li>
-        </ul>
-        <p>This suggests these are major hiring entities within this analyzed market.</p>
+        <p>Major corporations like <span class="highlight">JPMorgan Chase Bank, N.A.</span>, <span class="highlight">IBM</span>, and <span class="highlight">Accenture</span> were often listed among the top hiring companies in the initial dataset.</p>
     </div>
     <div class="summary-point">
         <h3>5. Critical Skill Sets</h3>
-        <p>Beyond technical expertise, <span class="highlight">Management</span> and <span class="highlight">Communication skills</span> are highly sought after across various roles, indicating the importance of both hard and soft skills in the job market.</p>
+        <p>Alongside technical skills (like Python, Java, Cloud platforms), <span class="highlight">Management</span> and <span class="highlight">Communication</span> were frequently sought after, emphasizing the value of soft skills.</p>
     </div>
     <div class="summary-point">
         <h3>6. Employment Type Trend</h3>
-        <p>The job market is heavily skewed towards <span class="highlight">full-time positions</span>, representing approximately <span class="highlight">96.44%</span> of all postings, indicating a strong preference for full-time employment opportunities.</p>
+        <p>The job market analyzed was heavily dominated by <span class="highlight">full-time positions</span>, typically representing over 90% of postings.</p>
     </div>
     <div class="summary-point">
-        <h3>7. IT Sector Demand</h3>
-        <p>The initial data suggests a <span class="highlight">robust IT sector</span> with a high demand for software developers. This reflects the rapid growth and expansion of the tech industry.</p>
+        <h3>7. Further Research Potential</h3>
+        <p>Further analysis could explore <span class="highlight">salary trends</span>, deeper <span class="highlight">geographical distributions</span> (city-level), and the evolution of skill demands over time.</p>
     </div>
-    <div class="summary-point">
-        <h3>8. Key Soft Skills</h3>
-        <p>Strong <span class="highlight">Management</span> and <span class="highlight">Communication skills</span> are valuable assets for job seekers across all job categories.</p>
-    </div>
-    <div class="summary-point">
-        <h3>9. Full-Time Opportunities</h3>
-        <p>The predominant offering in the market is <span class="highlight">full-time roles</span>, which suggests job stability and long-term career growth for applicants.</p>
-    </div>
-    <div class="summary-point">
-        <h3>10. Further Research Potential</h3>
-        <p>Further analysis could delve into <span class="highlight">salary trends</span>, <span class="highlight">geographical distribution</span> of roles, and the <span class="highlight">correlation between skills</span> and job titles.</p>
-    </div>
+    <p style="text-align: center; margin-top: 20px; font-size: 0.9em; color: #ccc;"><i>Note: This summary reflects insights from the initial, unfiltered dataset. Use the filters and interactive charts above for current, specific analysis.</i></p>
 </div>
 """
-
 st.markdown(html_code, unsafe_allow_html=True)
+
+# --- Footer ---
+st.markdown("---")
+st.caption("Dashboard developed using Streamlit & Plotly | Data Source: Scraped Job Postings (Illustrative)")
