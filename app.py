@@ -6,9 +6,7 @@ import logging
 from io import StringIO
 import base64
 import requests
-import os
-import re # <--- Added import for regex
-import time # <--- Added import for timing
+import os # Keep os import if needed elsewhere, though not used in provided snippet
 
 # --- Constants ---
 TOP_N_CATEGORIES = 15
@@ -80,22 +78,6 @@ custom_css = """
         padding-bottom: 0.5rem;
         animation: fadeIn 1s ease;
     }
-
-     /* Header styling (used for sections like KPIs, Top Companies etc.) */
-    header[data-testid="stHeader"] {
-        background: none; /* Remove Streamlit's default header background if needed */
-    }
-    h2 { /* Ensuring section headers use this style */
-        color: #a855f7; /* Purple accent */
-        font-weight: bold;
-        margin-top: 2.5rem; /* Consistent top margin */
-        margin-bottom: 1.5rem;
-        border-bottom: 3px solid #a855f7; /* Slightly thinner line */
-        padding-bottom: 0.5rem;
-        animation: fadeIn 1s ease;
-        font-size: 1.75rem; /* Explicit font size */
-    }
-
 
     /* Sub Headings within sections */
     h4 {
@@ -270,8 +252,6 @@ custom_css = """
         justify-content: center;
         align-items: center;
         border-bottom: none; /* Remove the default h2 border here */
-        padding-bottom: 0; /* Remove padding */
-        margin-top: 0; /* Remove top margin */
     }
 
     .summary-container h2 i { /* Icon styling */
@@ -287,7 +267,6 @@ custom_css = """
         font-weight: 600;
         border-bottom: none; /* Remove default h3 border */
         margin-top: 0; /* Reset margin */
-        padding-bottom: 0; /* Remove padding */
      }
 
     .summary-point {
@@ -476,13 +455,15 @@ if logo_base64:
 st.sidebar.header("Filters")
 
 # Category Filter
-all_categories = sorted([cat for cat in df['category'].unique() if pd.notna(cat) and cat != 'Unknown']) # Exclude potential None/NaN/Unknown
+all_categories = sorted(df['category'].unique())
 # Try setting a default like 'IT' if it exists, otherwise default to 'All'
 default_cat_index = 0
-all_categories_with_all = ["All"] + all_categories # Prepend "All"
+if "All" not in all_categories:
+     all_categories_with_all = ["All"] + all_categories
+else:
+     all_categories_with_all = all_categories # If 'All' somehow exists
 
 try:
-    # Find index of 'IT' in the list that includes 'All'
     default_cat_index = all_categories_with_all.index("IT")
 except ValueError:
     default_cat_index = 0 # Default to "All" if "IT" isn't found
@@ -494,8 +475,11 @@ selected_category = st.sidebar.selectbox(
 )
 
 # Location (State) Filter
-all_states = sorted([state for state in df['state'].unique() if pd.notna(state) and state != 'Unknown']) # Exclude potential None/NaN/Unknown
-all_states_with_all = ["All"] + all_states
+all_states = sorted(df['state'].unique())
+if "All" not in all_states:
+     all_states_with_all = ["All"] + all_states
+else:
+    all_states_with_all = all_states
 
 selected_state = st.sidebar.selectbox(
     "Select a State",
@@ -518,11 +502,11 @@ def filter_data(dataf, category, state):
 filtered_df = filter_data(df, selected_category, selected_state)
 
 # --- Display Filtered Results Info ---
-st.markdown(f"#### Showing results for: `{selected_category}` jobs in `{selected_state}`")
+st.markdown(f"#### Showing results for: **{selected_category}** jobs in **{selected_state}**")
 
 # --- Check if Filtered Data is Empty ---
 if filtered_df.empty:
-    st.warning("⚠️ No job postings match the selected filters. Please broaden your search.")
+    st.warning("No job postings match the selected filters. Please broaden your search.")
     st.stop() # Stop execution if no data after filtering
 
 # --- KPIs ---
@@ -530,15 +514,12 @@ st.header("Key Performance Indicators")
 
 # Calculate KPIs safely after checking filtered_df is not empty
 total_postings = len(filtered_df)
-unique_categories = filtered_df['category'].nunique() # Unique categories within the filter
+unique_categories = filtered_df['category'].nunique()
 unique_titles_count = filtered_df['job_title'].nunique()
 
 # Use value_counts() and handle potential empty series
-top_category_series = filtered_df['category'].value_counts()
-top_title_series = filtered_df['job_title'].value_counts()
-
-top_category = top_category_series.index[0] if not top_category_series.empty else "N/A"
-top_title = top_title_series.index[0] if not top_title_series.empty else "N/A"
+top_category = filtered_df['category'].value_counts().index[0] if not filtered_df['category'].value_counts().empty else "N/A"
+top_title = filtered_df['job_title'].value_counts().index[0] if not filtered_df['job_title'].value_counts().empty else "N/A"
 
 
 kpi_data = [
@@ -574,7 +555,7 @@ def get_plotly_layout():
         'xaxis': dict(showgrid=False, zeroline=False), # Cleaner axes
         'yaxis': dict(showgrid=True, gridcolor='#444'), # Subtle gridlines on y-axis
         'legend': dict(bgcolor='rgba(0,0,0,0.5)', bordercolor='#888'), # Semi-transparent legend
-         'margin': dict(l=10, r=10, t=60, b=10) # Adjust margins (increased top margin for title)
+         'margin': dict(l=10, r=10, t=50, b=10) # Adjust margins
     }
 
 # --- Job Postings by Category ---
@@ -582,14 +563,12 @@ st.header("Job Postings Distribution")
 
 category_counts = filtered_df['category'].value_counts().head(TOP_N_CATEGORIES)
 if not category_counts.empty:
-    # Dynamic title based on whether category is filtered
-    category_title_detail = f"({selected_state if selected_state != 'All' else 'All States'})" if selected_category == 'All' else f"in {selected_category} ({selected_state if selected_state != 'All' else 'All States'})"
     fig_category_bar = px.bar(
         category_counts,
         x=category_counts.index,
         y=category_counts.values,
         labels={'x': 'Job Category', 'y': 'Number of Postings'},
-        title=f"Top {len(category_counts)} Job Categories {category_title_detail}",
+        title=f"Top {TOP_N_CATEGORIES} Job Categories ({'Filtered' if selected_category != 'All' or selected_state != 'All' else 'Overall'})", # Dynamic title part
         color_discrete_sequence=px.colors.sequential.Plasma_r, # Reversed Plasma
         template="plotly_dark" # Use plotly dark template base
     )
@@ -603,18 +582,18 @@ else:
 job_title_counts = filtered_df['job_title'].value_counts().head(TOP_N_TITLES)
 if not job_title_counts.empty:
     fig_job_title_bar = px.bar(
-        job_title_counts.sort_values(ascending=True), # Sort values for horizontal chart
-        y=job_title_counts.sort_values(ascending=True).index,
-        x=job_title_counts.sort_values(ascending=True).values,
+        job_title_counts,
+        y=job_title_counts.index,
+        x=job_title_counts.values,
         orientation='h',
         labels={'y': 'Job Title', 'x': 'Number of Postings'},
-        title=f"Top {len(job_title_counts)} Job Titles ({selected_state if selected_state != 'All' else 'All States'})",
-        color=job_title_counts.sort_values(ascending=True).values, # Color by count
+        title=f"Top {TOP_N_TITLES} Job Titles ({selected_state if selected_state != 'All' else 'All States'})",
+        color=job_title_counts.values, # Color by count
         color_continuous_scale=px.colors.sequential.Viridis, # Use Viridis scale
         template="plotly_dark"
     )
     fig_job_title_bar.update_layout(**get_plotly_layout())
-    # No need for yaxis categoryorder since data is pre-sorted
+    fig_job_title_bar.update_layout(yaxis={'categoryorder':'total ascending'}) # Order bars
     st.plotly_chart(fig_job_title_bar, use_container_width=True)
 else:
     st.info("No job title data to display for the current selection.")
@@ -625,105 +604,81 @@ st.header("Top Hiring Companies")
 company_counts = filtered_df['company_name'].value_counts().head(TOP_N_COMPANIES)
 if not company_counts.empty:
     fig_company_bar = px.bar(
-        company_counts.sort_values(ascending=True), # Sort values
-        y=company_counts.sort_values(ascending=True).index,
-        x=company_counts.sort_values(ascending=True).values,
+        company_counts,
+        y=company_counts.index,
+        x=company_counts.values,
         orientation='h',
         labels={'y': 'Company Name', 'x': 'Number of Postings'},
-        title=f"Top {len(company_counts)} Companies ({selected_state if selected_state != 'All' else 'All States'})",
-        color=company_counts.sort_values(ascending=True).values,
+        title=f"Top {TOP_N_COMPANIES} Companies ({selected_state if selected_state != 'All' else 'All States'})",
+        color=company_counts.values,
         color_continuous_scale=px.colors.sequential.Tealgrn, # Changed color sequence
         template="plotly_dark"
     )
     fig_company_bar.update_layout(**get_plotly_layout())
-    # No need for yaxis categoryorder since data is pre-sorted
+    fig_company_bar.update_layout(yaxis={'categoryorder':'total ascending'})
     st.plotly_chart(fig_company_bar, use_container_width=True)
 else:
     st.info("No company data to display for the current selection.")
 
 
-# --- Skills Demand Analysis (Optimized with Combined Regex) ---
+# --- Skills Demand Analysis ---
 st.header("Skills in Demand")
 
-# Define skills list
+# Define skills list (consider making this configurable or loading from a file)
 SKILLS_LIST = [
     "Python", "JavaScript", "Java", "C++", "C#", "SQL", "NoSQL", "AWS", "Azure", "GCP",
     "Docker", "Kubernetes", "Terraform", "React", "Angular", "Vue", "Node.js",
     "Data Analysis", "Machine Learning", "Deep Learning", "AI", "Statistics", "Pandas", "NumPy", "Scikit-learn",
     "Communication", "Leadership", "Management", "Project Management", "Agile", "Scrum"
 ]
-# Make the list unique and sort for consistency
-SKILLS_LIST = sorted(list(set(SKILLS_LIST)))
 
-# Escape special regex characters in skills (like C++) and create the combined pattern
-# Use word boundaries (\b) to match whole words only
-escaped_skills = [re.escape(skill) for skill in SKILLS_LIST]
-skills_pattern = r'\b(' + '|'.join(escaped_skills) + r')\b'
+def extract_skills(description):
+    """Extracts predefined skills from a job description (case-insensitive)."""
+    if not isinstance(description, str):
+        return []
+    # Use word boundaries (\b) to avoid matching substrings (e.g., 'java' in 'javascript')
+    found_skills = [skill for skill in SKILLS_LIST if pd.Series(description.lower()).str.contains(fr'\b{skill.lower()}\b', regex=True).any()]
+    return found_skills
 
-# Check if 'job_description' column exists and is not empty
-if 'job_description' in filtered_df.columns and not filtered_df.empty:
-    # Ensure the column is string type and handle potential NaNs
-    descriptions = filtered_df['job_description'].astype(str).fillna('')
+# Check if 'job_description' column exists
+if 'job_description' in filtered_df.columns:
+    try:
+        # Apply skill extraction to the FILTERED dataframe
+        filtered_df['skills'] = filtered_df['job_description'].apply(extract_skills)
+        logging.info("Skill extraction completed.")
 
-    st.info(f"Analyzing {len(descriptions):,} job descriptions for {len(SKILLS_LIST)} skills... (This may take a moment)")
-    with st.spinner("Extracting skills..."):
-        start_time = time.time()
-        try:
-            # Apply the combined regex using str.findall (case-insensitive)
-            found_skills_lists = descriptions.str.findall(skills_pattern, flags=re.IGNORECASE)
+        # Flatten the list of skills
+        all_skills = [skill for sublist in filtered_df['skills'] for skill in sublist]
 
-            # Flatten the list of lists into a single list of all found skills
-            all_skills = [skill for sublist in found_skills_lists for skill in sublist]
+        if all_skills:
+            skill_counts = Counter(all_skills)
+            top_skills = skill_counts.most_common(TOP_N_SKILLS)
 
-            # Normalize capitalization to match the SKILLS_LIST casing for consistent counting
-            skill_map = {skill.lower(): skill for skill in SKILLS_LIST}
-            all_skills_normalized = [skill_map.get(skill.lower(), skill) for skill in all_skills if skill.lower() in skill_map]
+            skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
 
-            end_time = time.time()
-            processing_time = end_time - start_time
-            logging.info(f"Skill extraction completed in {processing_time:.2f} seconds.")
-            # Only show success message if it took noticeable time
-            if processing_time > 1.0:
-                 st.success(f"Skill analysis finished in {processing_time:.2f} seconds.")
+            fig_skills_bar = px.bar(
+                skills_df,
+                x='Count',
+                y='Skill',
+                orientation='h',
+                labels={'Count': 'Frequency in Postings', 'Skill': 'Skill'},
+                title=f"Top {TOP_N_SKILLS} Skills Mentioned ({'Filtered' if selected_category != 'All' or selected_state != 'All' else 'Overall'})",
+                color='Count',
+                color_continuous_scale=px.colors.sequential.Magenta, # Different color scale
+                template="plotly_dark"
+            )
+            fig_skills_bar.update_layout(**get_plotly_layout())
+            fig_skills_bar.update_layout(yaxis={'categoryorder':'total ascending'})
+            st.plotly_chart(fig_skills_bar, use_container_width=True)
+        else:
+            st.info("No predefined skills found in the job descriptions for the current selection.")
 
-            if all_skills_normalized:
-                skill_counts = Counter(all_skills_normalized)
-                top_skills = skill_counts.most_common(TOP_N_SKILLS)
-
-                if top_skills: # Check if top_skills list is not empty
-                    skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
-
-                    fig_skills_bar = px.bar(
-                        skills_df.sort_values(by='Count', ascending=True), # Sort for horizontal bar chart
-                        x='Count',
-                        y='Skill',
-                        orientation='h',
-                        labels={'Count': 'Frequency in Postings', 'Skill': 'Skill'},
-                        title=f"Top {len(top_skills)} Skills Mentioned ({'Filtered' if selected_category != 'All' or selected_state != 'All' else 'Overall'})",
-                        color='Count',
-                        color_continuous_scale=px.colors.sequential.Magenta, # Different color scale
-                        template="plotly_dark"
-                    )
-                    fig_skills_bar.update_layout(**get_plotly_layout()) # Apply common layout
-                    st.plotly_chart(fig_skills_bar, use_container_width=True)
-                    st.caption(f"Based on mentions of predefined skills like: {', '.join(SKILLS_LIST[:5])}...") # Show sample skills
-                else:
-                     st.info("No occurrences of the predefined skills found in the descriptions.")
-
-            else:
-                st.info("No predefined skills found in the job descriptions for the current selection.")
-
-        except Exception as e:
-            st.error(f"An error occurred during optimized skills analysis: {e}")
-            logging.exception("Error during optimized skills analysis")
+    except Exception as e:
+        st.error(f"An error occurred during skills analysis: {e}")
+        logging.exception("Error during skills analysis")
 else:
-    # Specific message if dataframe is empty vs column missing
-    if filtered_df.empty:
-         st.warning("No job descriptions to analyze after filtering.")
-    elif 'job_description' not in filtered_df.columns:
-        st.warning("The 'job_description' column is missing. Cannot perform skills analysis.")
-    logging.warning("'job_description' column not found or dataframe empty for skills analysis.")
-# --- End of Optimized Skills Analysis ---
+    st.warning("The 'job_description' column is missing. Cannot perform skills analysis.")
+    logging.warning("'job_description' column not found for skills analysis.")
 
 
 # --- Job Type Analysis ---
@@ -756,8 +711,8 @@ if 'job_type' in filtered_df.columns:
             names=job_type_counts.index,
             values=job_type_counts.values,
             title=f"Job Type Distribution ({selected_state if selected_state != 'All' else 'All States'})",
-            hole=0.4, # Make it a donut chart
-            color_discrete_sequence=px.colors.sequential.RdBu_r, # Reversed RdBu
+            hole=0.3, # Make it a donut chart
+            color_discrete_sequence=px.colors.sequential.RdBu, # Changed color sequence
             template="plotly_dark"
         )
         fig_job_type_pie.update_traces(
@@ -767,10 +722,7 @@ if 'job_type' in filtered_df.columns:
             marker=dict(line=dict(color='#1f1f1f', width=2))
         )
         fig_job_type_pie.update_layout(**get_plotly_layout())
-        fig_job_type_pie.update_layout(showlegend=True, # Show legend for pie types
-                                       legend_title_text='Job Types',
-                                       legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5), # Horizontal legend below
-                                       title_font_size=20)
+        fig_job_type_pie.update_layout(showlegend=False, title_font_size=20) # Hide legend for pie
 
         # Display chart and metrics side-by-side
         col1, col2 = st.columns([2, 1]) # Chart takes more space
@@ -781,12 +733,11 @@ if 'job_type' in filtered_df.columns:
         with col2:
             st.markdown("#### Breakdown:")
             total = job_type_counts.sum()
-            # Sort metrics by count descending
-            for job_type, count in job_type_counts.sort_values(ascending=False).items():
+            for job_type, count in job_type_counts.items():
                 percentage = (count / total) * 100 if total > 0 else 0
-                # Use delta_color="off" or remove delta if percentage isn't inherently good/bad
-                st.metric(label=job_type, value=f"{count:,}", help=f"{percentage:.1f}% of filtered postings")
-            st.caption("Note: Job types broadly categorized. 'Other' includes unspecified types.")
+                st.metric(label=job_type, value=f"{count:,}", delta=f"{percentage:.1f}%")
+            # Add a note about the categorization
+            st.caption("Note: Job types are broadly categorized (Full-time, Part-time, Contract, etc.). 'Other' includes unspecified or less common types.")
 
     else:
         st.info("No job type data to display for the current selection.")
@@ -797,35 +748,16 @@ else:
 
 # --- Display the raw data (optional) ---
 st.header("Explore Raw Data")
-if st.checkbox("Show Filtered Raw Data Sample", value=False): # Default to unchecked
+if st.checkbox("Show Filtered Raw Data Sample"):
     st.markdown("Displaying a sample of the filtered job postings data.")
-    # Display relevant columns only, make it configurable if needed
-    display_cols = ['job_title', 'company_name', 'category', 'state', 'job_type']
-    # Filter columns that actually exist in the dataframe
-    display_cols = [col for col in display_cols if col in filtered_df.columns]
-    if display_cols:
-        st.dataframe(filtered_df[display_cols].head(50))
-    else:
-        st.dataframe(filtered_df.head(50)) # Fallback to showing all columns if predefined ones are missing
-
-    st.caption(f"Showing sample. Total filtered postings: {len(filtered_df):,}")
-    # Add download button for filtered data
-    @st.cache_data # Cache the conversion
-    def convert_df_to_csv(df_to_convert):
-       return df_to_convert.to_csv(index=False).encode('utf-8')
-
-    csv_download = convert_df_to_csv(filtered_df)
-    st.download_button(
-       label="Download Filtered Data as CSV",
-       data=csv_download,
-       file_name=f'filtered_job_postings_{selected_category}_{selected_state}.csv',
-       mime='text/csv',
-    )
-
+    st.dataframe(filtered_df.head(50)) # Show top 50 rows of filtered data
+    st.caption(f"Total filtered postings: {len(filtered_df):,}")
 
 # --- Summary Section (Using the HTML block) ---
-# Note: This summary remains static based on the original analysis.
 st.header("Overall Summary & Insights")
+
+# Note: This summary is static based on the original analysis.
+# For a dynamic summary reflecting filters, you'd need to recalculate these points based on filtered_df.
 html_code = """
 <div class="summary-container">
     <h2><i class="fas fa-briefcase"></i> Initial Dataset Insights Summary</h2>
@@ -864,4 +796,4 @@ st.markdown(html_code, unsafe_allow_html=True)
 
 # --- Footer ---
 st.markdown("---")
-st.caption(f"Dashboard developed using Streamlit & Plotly | Data Source: Scraped Job Postings (Illustrative) | Last Updated: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}")
+st.caption("Dashboard developed using Streamlit & Plotly | Data Source: Scraped Job Postings (Illustrative)")
