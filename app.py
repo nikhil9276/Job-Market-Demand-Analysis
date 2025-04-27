@@ -681,69 +681,69 @@ else:
 #     logging.warning("'job_description' column not found for skills analysis.")
 
 
-# --- Job Type Analysis ---
-st.header("Job Type Distribution")
+# # --- Job Type Analysis ---
+# st.header("Job Type Distribution")
 
-if 'job_type' in filtered_df.columns:
-    # Simplified job type categorization
-    def categorize_job_type(jt):
-        jt_lower = str(jt).lower()
-        if 'full-time' in jt_lower or 'full time' in jt_lower:
-            return 'Full-time'
-        elif 'part-time' in jt_lower or 'part time' in jt_lower:
-            return 'Part-time'
-        elif 'contract' in jt_lower:
-            return 'Contract'
-        elif 'internship' in jt_lower:
-            return 'Internship'
-        elif 'temporary' in jt_lower:
-            return 'Temporary'
-        else:
-            return 'Other/Unspecified' # Catch-all
+# if 'job_type' in filtered_df.columns:
+#     # Simplified job type categorization
+#     def categorize_job_type(jt):
+#         jt_lower = str(jt).lower()
+#         if 'full-time' in jt_lower or 'full time' in jt_lower:
+#             return 'Full-time'
+#         elif 'part-time' in jt_lower or 'part time' in jt_lower:
+#             return 'Part-time'
+#         elif 'contract' in jt_lower:
+#             return 'Contract'
+#         elif 'internship' in jt_lower:
+#             return 'Internship'
+#         elif 'temporary' in jt_lower:
+#             return 'Temporary'
+#         else:
+#             return 'Other/Unspecified' # Catch-all
 
-    filtered_df['job_type_category'] = filtered_df['job_type'].apply(categorize_job_type)
+#     filtered_df['job_type_category'] = filtered_df['job_type'].apply(categorize_job_type)
 
-    job_type_counts = filtered_df['job_type_category'].value_counts()
+#     job_type_counts = filtered_df['job_type_category'].value_counts()
 
-    if not job_type_counts.empty:
-        fig_job_type_pie = px.pie(
-            job_type_counts,
-            names=job_type_counts.index,
-            values=job_type_counts.values,
-            title=f"Job Type Distribution ({selected_state if selected_state != 'All' else 'All States'})",
-            hole=0.3, # Make it a donut chart
-            color_discrete_sequence=px.colors.sequential.RdBu, # Changed color sequence
-            template="plotly_dark"
-        )
-        fig_job_type_pie.update_traces(
-            textposition='outside',
-            textinfo='percent+label',
-            pull=[0.05 if i == 0 else 0 for i in range(len(job_type_counts))], # Pull the largest slice
-            marker=dict(line=dict(color='#1f1f1f', width=2))
-        )
-        fig_job_type_pie.update_layout(**get_plotly_layout())
-        fig_job_type_pie.update_layout(showlegend=False, title_font_size=20) # Hide legend for pie
+#     if not job_type_counts.empty:
+#         fig_job_type_pie = px.pie(
+#             job_type_counts,
+#             names=job_type_counts.index,
+#             values=job_type_counts.values,
+#             title=f"Job Type Distribution ({selected_state if selected_state != 'All' else 'All States'})",
+#             hole=0.3, # Make it a donut chart
+#             color_discrete_sequence=px.colors.sequential.RdBu, # Changed color sequence
+#             template="plotly_dark"
+#         )
+#         fig_job_type_pie.update_traces(
+#             textposition='outside',
+#             textinfo='percent+label',
+#             pull=[0.05 if i == 0 else 0 for i in range(len(job_type_counts))], # Pull the largest slice
+#             marker=dict(line=dict(color='#1f1f1f', width=2))
+#         )
+#         fig_job_type_pie.update_layout(**get_plotly_layout())
+#         fig_job_type_pie.update_layout(showlegend=False, title_font_size=20) # Hide legend for pie
 
-        # Display chart and metrics side-by-side
-        col1, col2 = st.columns([2, 1]) # Chart takes more space
+#         # Display chart and metrics side-by-side
+#         col1, col2 = st.columns([2, 1]) # Chart takes more space
 
-        with col1:
-            st.plotly_chart(fig_job_type_pie, use_container_width=True)
+#         with col1:
+#             st.plotly_chart(fig_job_type_pie, use_container_width=True)
 
-        with col2:
-            st.markdown("#### Breakdown:")
-            total = job_type_counts.sum()
-            for job_type, count in job_type_counts.items():
-                percentage = (count / total) * 100 if total > 0 else 0
-                st.metric(label=job_type, value=f"{count:,}", delta=f"{percentage:.1f}%")
-            # Add a note about the categorization
-            st.caption("Note: Job types are broadly categorized (Full-time, Part-time, Contract, etc.). 'Other' includes unspecified or less common types.")
+#         with col2:
+#             st.markdown("#### Breakdown:")
+#             total = job_type_counts.sum()
+#             for job_type, count in job_type_counts.items():
+#                 percentage = (count / total) * 100 if total > 0 else 0
+#                 st.metric(label=job_type, value=f"{count:,}", delta=f"{percentage:.1f}%")
+#             # Add a note about the categorization
+#             st.caption("Note: Job types are broadly categorized (Full-time, Part-time, Contract, etc.). 'Other' includes unspecified or less common types.")
 
-    else:
-        st.info("No job type data to display for the current selection.")
-else:
-    st.warning("'job_type' column not found. Cannot perform job type analysis.")
-    logging.warning("'job_type' column not found for job type analysis.")
+#     else:
+#         st.info("No job type data to display for the current selection.")
+# else:
+#     st.warning("'job_type' column not found. Cannot perform job type analysis.")
+#     logging.warning("'job_type' column not found for job type analysis.")
 
 
 # --- Display the raw data (optional) ---
