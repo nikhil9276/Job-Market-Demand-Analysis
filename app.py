@@ -620,65 +620,63 @@ if not company_counts.empty:
 else:
     st.info("No company data to display for the current selection.")
 
+# --- Skills Demand Analysis ---
+st.header("Skills in Demand")
 
-# # --- Skills Demand Analysis ---
-# st.header("Skills in Demand")
+# Define skills list
+SKILLS_LIST = [
+    "Python", "JavaScript", "Java", "C++", "C#", "SQL", "NoSQL", "AWS", "Azure", "GCP",
+    "Docker", "Kubernetes", "Terraform", "React", "Angular", "Vue", "Node.js",
+    "Data Analysis", "Machine Learning", "Deep Learning", "AI", "Statistics", "Pandas", "NumPy", "Scikit-learn",
+    "Communication", "Leadership", "Management", "Project Management", "Agile", "Scrum"
+]
 
-# # Define skills list (consider making this configurable or loading from a file)
-# SKILLS_LIST = [
-#     "Python", "JavaScript", "Java", "C++", "C#", "SQL", "NoSQL", "AWS", "Azure", "GCP",
-#     "Docker", "Kubernetes", "Terraform", "React", "Angular", "Vue", "Node.js",
-#     "Data Analysis", "Machine Learning", "Deep Learning", "AI", "Statistics", "Pandas", "NumPy", "Scikit-learn",
-#     "Communication", "Leadership", "Management", "Project Management", "Agile", "Scrum"
-# ]
+# Precompile a single combined regex pattern
+skills_pattern = r'\b(?:' + '|'.join(re.escape(skill.lower()) for skill in SKILLS_LIST) + r')\b'
 
-# def extract_skills(description):
-#     """Extracts predefined skills from a job description (case-insensitive)."""
-#     if not isinstance(description, str):
-#         return []
-#     # Use word boundaries (\b) to avoid matching substrings (e.g., 'java' in 'javascript')
-#     found_skills = [skill for skill in SKILLS_LIST if pd.Series(description.lower()).str.contains(fr'\b{skill.lower()}\b', regex=True).any()]
-#     return found_skills
+# Check if 'job_description' column exists
+if 'job_description' in filtered_df.columns:
+    try:
+        # Lowercase the descriptions first
+        descriptions = filtered_df['job_description'].astype(str).str.lower()
 
-# # Check if 'job_description' column exists
-# if 'job_description' in filtered_df.columns:
-#     try:
-#         # Apply skill extraction to the FILTERED dataframe
-#         filtered_df['skills'] = filtered_df['job_description'].apply(extract_skills)
-#         logging.info("Skill extraction completed.")
+        # Extract skills using findall
+        filtered_df['skills'] = descriptions.str.findall(skills_pattern)
 
-#         # Flatten the list of skills
-#         all_skills = [skill for sublist in filtered_df['skills'] for skill in sublist]
+        logging.info("Skill extraction completed.")
 
-#         if all_skills:
-#             skill_counts = Counter(all_skills)
-#             top_skills = skill_counts.most_common(TOP_N_SKILLS)
+        # Flatten the list of skills
+        all_skills = [skill for sublist in filtered_df['skills'] for skill in sublist]
 
-#             skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
+        if all_skills:
+            skill_counts = Counter(all_skills)
+            top_skills = skill_counts.most_common(TOP_N_SKILLS)
 
-#             fig_skills_bar = px.bar(
-#                 skills_df,
-#                 x='Count',
-#                 y='Skill',
-#                 orientation='h',
-#                 labels={'Count': 'Frequency in Postings', 'Skill': 'Skill'},
-#                 title=f"Top {TOP_N_SKILLS} Skills Mentioned ({'Filtered' if selected_category != 'All' or selected_state != 'All' else 'Overall'})",
-#                 color='Count',
-#                 color_continuous_scale=px.colors.sequential.Magenta, # Different color scale
-#                 template="plotly_dark"
-#             )
-#             fig_skills_bar.update_layout(**get_plotly_layout())
-#             fig_skills_bar.update_layout(yaxis={'categoryorder':'total ascending'})
-#             st.plotly_chart(fig_skills_bar, use_container_width=True)
-#         else:
-#             st.info("No predefined skills found in the job descriptions for the current selection.")
+            skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
 
-#     except Exception as e:
-#         st.error(f"An error occurred during skills analysis: {e}")
-#         logging.exception("Error during skills analysis")
-# else:
-#     st.warning("The 'job_description' column is missing. Cannot perform skills analysis.")
-#     logging.warning("'job_description' column not found for skills analysis.")
+            fig_skills_bar = px.bar(
+                skills_df,
+                x='Count',
+                y='Skill',
+                orientation='h',
+                labels={'Count': 'Frequency in Postings', 'Skill': 'Skill'},
+                title=f"Top {TOP_N_SKILLS} Skills Mentioned ({'Filtered' if selected_category != 'All' or selected_state != 'All' else 'Overall'})",
+                color='Count',
+                color_continuous_scale=px.colors.sequential.Magenta,
+                template="plotly_dark"
+            )
+            fig_skills_bar.update_layout(**get_plotly_layout())
+            fig_skills_bar.update_layout(yaxis={'categoryorder':'total ascending'})
+            st.plotly_chart(fig_skills_bar, use_container_width=True)
+        else:
+            st.info("No predefined skills found in the job descriptions for the current selection.")
+
+    except Exception as e:
+        st.error(f"An error occurred during skills analysis: {e}")
+        logging.exception("Error during skills analysis")
+else:
+    st.warning("The 'job_description' column is missing. Cannot perform skills analysis.")
+    logging.warning("'job_description' column not found for skills analysis.")
 
 
 # --- Job Type Analysis ---
