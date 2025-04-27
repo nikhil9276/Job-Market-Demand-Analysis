@@ -3,7 +3,9 @@ import pandas as pd
 import plotly.express as px
 from collections import Counter
 import logging
-import io
+from io import StringIO
+import os
+import requests
 import base64
 
 # --- Setup Logging ---
@@ -267,14 +269,24 @@ st.markdown(custom_css, unsafe_allow_html=True)
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv('Indeed_cleaned.csv')
-        logging.info("Successfully loaded 'Indeed_cleaned.csv'")
-        return df
-    except FileNotFoundError:
-        error_message = "Error: 'Indeed_cleaned.csv' not found.  Make sure it's in the same directory as app.py."
-        st.error(error_message)
-        logging.error(error_message)
-        st.stop()
+        # Use the direct download link
+        drive_url = "https://drive.google.com/uc?export=download&id=17jcNGGMozYXj-MJtYhqhpJqVATeOQGQ7"
+        
+        # Send a GET request to the Google Drive URL
+        response = requests.get(drive_url)
+        
+        if response.status_code == 200:
+            # Use StringIO to convert the response content into a file-like object for pandas to read
+            csv_data = StringIO(response.text)
+            df = pd.read_csv(csv_data)
+            logging.info("Successfully loaded the CSV file from Google Drive")
+            return df
+        else:
+            error_message = f"Failed to download the file from Google Drive, status code: {response.status_code}"
+            st.error(error_message)
+            logging.error(error_message)
+            st.stop()
+
     except Exception as e:
         error_message = f"An error occurred while loading the CSV file: {e}"
         st.error(error_message)
@@ -282,6 +294,7 @@ def load_data():
         st.stop()
 
 df = load_data()
+
 
 # --- Title of the App ---
 st.title("Job Market Demand Analysis")
@@ -293,7 +306,7 @@ def get_base64_of_file(path):
         encoded_image = base64.b64encode(f.read()).decode()
     return f"data:image/png;base64,{encoded_image}"
 
-logo_path = "indeed_logo.png"  # Make sure this is the correct relative path to your logo
+logo_path =  "indeed_logo.png"  # Make sure this is the correct relative path to your logo
 logo_base64 = get_base64_of_file(logo_path)
 st.markdown(
     f"""
@@ -417,105 +430,105 @@ fig_company_bar.update_layout(
 st.plotly_chart(fig_company_bar)
 
 
-# --- Skills Demand Analysis ---
-st.subheader("Skills Demand Analysis") # Changed the title here - Removed duplicate
+# # --- Skills Demand Analysis ---
+# st.subheader("Skills Demand Analysis") # Changed the title here - Removed duplicate
 
-def extract_skills(description):
-    skills = ["Python", "JavaScript", "Java", "C++", "SQL", "AWS", "Azure", "Docker", "Kubernetes", "React",
-              "Angular", "Node.js", "Data Analysis", "Machine Learning", "Communication", "Management"]
-    found_skills = [skill for skill in skills if skill.lower() in description.lower()]
-    return found_skills
+# def extract_skills(description):
+#     skills = ["Python", "JavaScript", "Java", "C++", "SQL", "AWS", "Azure", "Docker", "Kubernetes", "React",
+#               "Angular", "Node.js", "Data Analysis", "Machine Learning", "Communication", "Management"]
+#     found_skills = [skill for skill in skills if skill.lower() in description.lower()]
+#     return found_skills
 
-try:
-    df['skills'] = df['job_description'].apply(extract_skills) # Use the original DataFrame here
-except KeyError as e:
-        st.error(f"Error: The 'job_description' column is missing. Please check your data.  KeyError: {e}")
-        logging.error(f"KeyError: {e}.  The 'job_description' column is missing.")
-        st.stop()
-except Exception as e:
-        st.error(f"An unexpected error occurred while extracting skills: {e}")
-        logging.exception(f"An unexpected error occurred: {e}")
-        st.stop()
+# try:
+#     df['skills'] = df['job_description'].apply(extract_skills) # Use the original DataFrame here
+# except KeyError as e:
+#         st.error(f"Error: The 'job_description' column is missing. Please check your data.  KeyError: {e}")
+#         logging.error(f"KeyError: {e}.  The 'job_description' column is missing.")
+#         st.stop()
+# except Exception as e:
+#         st.error(f"An unexpected error occurred while extracting skills: {e}")
+#         logging.exception(f"An unexpected error occurred: {e}")
+#         st.stop()
 
-all_skills = [skill for sublist in df['skills'] for skill in sublist] # Use the original DataFrame here
-skill_counts = Counter(all_skills)
-top_skills = skill_counts.most_common(10)
+# all_skills = [skill for sublist in df['skills'] for skill in sublist] # Use the original DataFrame here
+# skill_counts = Counter(all_skills)
+# top_skills = skill_counts.most_common(10)
 
-if top_skills:
-    skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
-    fig_skills_bar = px.bar(
-        skills_df,
-        x='Count',
-        y='Skill',
-        orientation='h',
-        labels={'x': 'Number of Job Postings', 'y': 'Skill'}, # Changed x-axis label to 'Number of Job Postings'
-        title=f"Top 10 Skills in Demand", # Removed the state filter
-        color_discrete_sequence=px.colors.sequential.Plasma
-    )
-    fig_skills_bar.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#ffffff',
-        title_font_size=22,
-        font=dict(family='Inter', size=12),
-    )
-    st.plotly_chart(fig_skills_bar)
-else:
-    st.markdown(
-        "<div class='plot-container'><p style='color:#ffaaaa;'>No skills found in the job descriptions.</p></div>",
-        unsafe_allow_html=True)
+# if top_skills:
+#     skills_df = pd.DataFrame(top_skills, columns=['Skill', 'Count'])
+#     fig_skills_bar = px.bar(
+#         skills_df,
+#         x='Count',
+#         y='Skill',
+#         orientation='h',
+#         labels={'x': 'Number of Job Postings', 'y': 'Skill'}, # Changed x-axis label to 'Number of Job Postings'
+#         title=f"Top 10 Skills in Demand", # Removed the state filter
+#         color_discrete_sequence=px.colors.sequential.Plasma
+#     )
+#     fig_skills_bar.update_layout(
+#         paper_bgcolor='rgba(0,0,0,0)',
+#         plot_bgcolor='rgba(0,0,0,0)',
+#         font_color='#ffffff',
+#         title_font_size=22,
+#         font=dict(family='Inter', size=12),
+#     )
+#     st.plotly_chart(fig_skills_bar)
+# else:
+#     st.markdown(
+#         "<div class='plot-container'><p style='color:#ffaaaa;'>No skills found in the job descriptions.</p></div>",
+# #         unsafe_allow_html=True)
 
-# --- Job Type Analysis ---
-st.subheader("Job Type Analysis") # Moved this line up
-if 'job_type' in filtered_df.columns:
-    # Create a new column 'job_type_category'
-    filtered_df['job_type_category'] = filtered_df['job_type'].apply(lambda x: 'Full-time' if 'Full-time' in x else 'Part-time')
+# # --- Job Type Analysis ---
+# st.subheader("Job Type Analysis") # Moved this line up
+# if 'job_type' in filtered_df.columns:
+#     # Create a new column 'job_type_category'
+#     filtered_df['job_type_category'] = filtered_df['job_type'].apply(lambda x: 'Full-time' if 'Full-time' in x else 'Part-time')
 
-    # Calculate the frequency of each job type category
-    job_type_counts = filtered_df['job_type_category'].value_counts()
+#     # Calculate the frequency of each job type category
+#     job_type_counts = filtered_df['job_type_category'].value_counts()
 
-    # Create a pie chart to visualize the distribution
-    fig_job_type_pie = px.pie(
-        job_type_counts,
-        names=job_type_counts.index,
-        values=job_type_counts.values,
-        title=f"Job Type Distribution in {selected_state if selected_state != 'All' else 'All States'}", # shortened title
-        labels={'names': 'Job Type Category', 'values': 'Number of Postings'},
-        color_discrete_sequence=px.colors.sequential.Rainbow, # Changed color sequence
-    )
-    fig_job_type_pie.update_traces(
-        hoverinfo='label+percent+value',
-        textinfo='label+percent+value',
-        marker=dict(line=dict(color='#1f1f1f', width=2)),
-        # Display labels and values outside the pie chart
-        textposition='outside',
-        insidetextorientation='auto'
-    )
-    fig_job_type_pie.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_color='#ffffff',
-        showlegend=False,
-        title_font_size=22,
-        font=dict(family='Inter', size=12),
-    )
-    # Create two columns for the pie chart and the text
-    col1, col2 = st.columns([1, 1])  # Adjust the ratio as needed
+#     # Create a pie chart to visualize the distribution
+#     fig_job_type_pie = px.pie(
+#         job_type_counts,
+#         names=job_type_counts.index,
+#         values=job_type_counts.values,
+#         title=f"Job Type Distribution in {selected_state if selected_state != 'All' else 'All States'}", # shortened title
+#         labels={'names': 'Job Type Category', 'values': 'Number of Postings'},
+#         color_discrete_sequence=px.colors.sequential.Rainbow, # Changed color sequence
+#     )
+#     fig_job_type_pie.update_traces(
+#         hoverinfo='label+percent+value',
+#         textinfo='label+percent+value',
+#         marker=dict(line=dict(color='#1f1f1f', width=2)),
+#         # Display labels and values outside the pie chart
+#         textposition='outside',
+#         insidetextorientation='auto'
+#     )
+#     fig_job_type_pie.update_layout(
+#         paper_bgcolor='rgba(0,0,0,0)',
+#         plot_bgcolor='rgba(0,0,0,0)',
+#         font_color='#ffffff',
+#         showlegend=False,
+#         title_font_size=22,
+#         font=dict(family='Inter', size=12),
+#     )
+#     # Create two columns for the pie chart and the text
+#     col1, col2 = st.columns([1, 1])  # Adjust the ratio as needed
 
-    # Display the pie chart in the first column
-    with col1:
-        st.plotly_chart(fig_job_type_pie)
+#     # Display the pie chart in the first column
+#     with col1:
+#         st.plotly_chart(fig_job_type_pie)
 
-    # Display the observations in the second column
-    with col2:
-        st.write("Observations:")
-        st.write("-   Full-time jobs are dominant, accounting for approximately 96.44% of the total job postings.")
-        st.write("-   Part-time jobs represent a smaller portion, accounting for about 3.56% of the total postings.")
-        st.write("-   The high percentage of Full-time positions suggests a strong preference or demand for full-time employment in this market.")
+#     # Display the observations in the second column
+#     with col2:
+#         st.write("Observations:")
+#         st.write("-   Full-time jobs are dominant, accounting for approximately 96.44% of the total job postings.")
+#         st.write("-   Part-time jobs represent a smaller portion, accounting for about 3.56% of the total postings.")
+#         st.write("-   The high percentage of Full-time positions suggests a strong preference or demand for full-time employment in this market.")
 
 
-else:
-    st.markdown("<div class='plot-container'><p style='color:#ffaaaa;'>'job_type' column not found.</p></div>", unsafe_allow_html=True)
+# else:
+#     st.markdown("<div class='plot-container'><p style='color:#ffaaaa;'>'job_type' column not found.</p></div>", unsafe_allow_html=True)
 
 # --- Display the raw data (optional) ---
 # if st.checkbox("Show Raw Data"): # Removed the checkbox
